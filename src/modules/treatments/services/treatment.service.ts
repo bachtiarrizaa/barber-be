@@ -9,7 +9,7 @@ import {
 } from '../../../common/utils/pagination.util';
 import { FilterTreatmentDto } from '../dtos/filter-treatment.dto';
 import { Logger, NotFoundException } from '@nestjs/common';
-import { UpdateTreatmentDto } from '../dtos/update-treaatment.dto';
+import { UpdateTreatmentDto } from '../dtos/update-treatment.dto';
 import { join } from 'path';
 import * as fs from 'fs';
 import { UpdateTreatmentStatusDto } from '../dtos/update-treatment-status.dto';
@@ -99,17 +99,17 @@ export class TreatmentService {
     id: string,
     updateTreatmentStatusDto: UpdateTreatmentStatusDto,
   ): Promise<ITreatment> {
-    const treaatment = await this.findById(id);
-    this.em.assign(treaatment, { isActive: updateTreatmentStatusDto.isActive });
+    const treatment = await this.findById(id);
+    this.em.assign(treatment, { isActive: updateTreatmentStatusDto.isActive });
     await this.em.flush();
-    return treaatment;
+    return treatment;
   }
 
   async delete(id: string): Promise<void> {
-    const treaatment = await this.findById(id);
-    if (treaatment.image) {
-      await this.deleteImageFile(treaatment.image);
+    const treatment = await this.findById(id);
+    if (treatment.image) {
+      await this.deleteImageFile(treatment.image);
     }
-    await this.em.remove(treaatment).flush();
+    await this.em.remove(treatment).flush();
   }
 }

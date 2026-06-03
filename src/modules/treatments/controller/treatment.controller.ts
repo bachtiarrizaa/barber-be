@@ -21,7 +21,7 @@ import { CreateTreatmentDto } from '../dtos/create-treatment.dto';
 import { ITreatment } from '../entities/treatment.entity';
 import { FilterTreatmentDto } from '../dtos/filter-treatment.dto';
 import { PaginatedResult } from '../../../common/utils/pagination.util';
-import { UpdateTreatmentDto } from '../dtos/update-treaatment.dto';
+import { UpdateTreatmentDto } from '../dtos/update-treatment.dto';
 import { UpdateProductStatusDto } from '../../products/dtos/update-product-status.dto';
 
 @Controller('treatments')
@@ -72,9 +72,9 @@ export class TreatmentController {
   @ResponseMessage('Treatment status updated successfully')
   async updateStatus(
     @Param('id') id: string,
-    @Body() updateTreaatmentStatusDto: UpdateProductStatusDto,
+    @Body() updateTreatmentStatusDto: UpdateProductStatusDto,
   ): Promise<ITreatment> {
-    return this.treatmentService.updateStatus(id, updateTreaatmentStatusDto);
+    return this.treatmentService.updateStatus(id, updateTreatmentStatusDto);
   }
 
   @Delete(':id')
