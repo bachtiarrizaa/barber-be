@@ -20,8 +20,9 @@ export class ProductService {
     @InjectRepository(Product)
     private readonly productRepository: ProductRepository,
     private readonly em: EntityManager,
-    private readonly logger = new Logger(ProductService.name),
   ) {}
+
+  private readonly logger = new Logger(ProductService.name);
 
   private async deleteImageFile(
     imagePath: string | null | undefined,

@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import mikroOrmConfig from './config/mikro-orm.config';
 import { ProductModule } from './modules/products/products.module';
+import { TreatmentModule } from './modules/treatments/treatments.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { ProductModule } from './modules/products/products.module';
     }),
     MikroOrmModule.forRoot(mikroOrmConfig),
     ProductModule,
+    TreatmentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
