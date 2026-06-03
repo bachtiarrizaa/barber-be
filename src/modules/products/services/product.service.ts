@@ -1,12 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { Product, IProduct } from '../entities/product.entity';
 import { ProductRepository } from '../repositories/product.repository';
 import { CreateProductDto } from '../dtos/create-product.dto';
 import { UpdateProductDto } from '../dtos/update-product.dto';
+import { FilterProductDto } from '../dtos/filter-product.dto';
 import { EntityManager } from '@mikro-orm/postgresql';
 import * as fs from 'fs';
 import { join } from 'path';
+import {
+  paginate,
+  PaginatedResult,
+} from '../../../common/utils/pagination.util';
+import { UpdateProductStatusDto } from '../dtos/update-product-status.dto';
 
 @Injectable()
 export class ProductService {
@@ -14,6 +20,7 @@ export class ProductService {
     @InjectRepository(Product)
     private readonly productRepository: ProductRepository,
     private readonly em: EntityManager,
+    private readonly logger = new Logger(ProductService.name),
   ) {}
 
   private async deleteImageFile(
@@ -26,7 +33,7 @@ export class ProductService {
       await fs.promises.unlink(fullPath);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-        console.error(`Failed to delete image file: ${imagePath}`, error);
+        this.logger.error(`Failed to delete image file: ${imagePath}`, error);
       }
     }
   }
@@ -43,8 +50,21 @@ export class ProductService {
     return product;
   }
 
-  async findAll(): Promise<IProduct[]> {
-    return this.productRepository.findAll();
+  async findAll(
+    filterDto: FilterProductDto,
+  ): Promise<PaginatedResult<IProduct>> {
+    const { isActive, ...paginationQuery } = filterDto;
+
+    const filters: Partial<{ isActive: boolean }> = {};
+    if (isActive !== undefined) {
+      filters.isActive = isActive;
+    }
+
+    return paginate<IProduct>(this.productRepository, paginationQuery, {
+      searchFields: ['name', 'description'],
+      filters,
+      orderBy: { createdAt: 'DESC' },
+    });
   }
 
   async findById(id: string): Promise<IProduct> {
@@ -71,6 +91,16 @@ export class ProductService {
     }
 
     this.em.assign(product, updateData);
+    await this.em.flush();
+    return product;
+  }
+
+  async updateStatus(
+    id: string,
+    updateProductStatusDto: UpdateProductStatusDto,
+  ): Promise<IProduct> {
+    const product = await this.findById(id);
+    this.em.assign(product, { isActive: updateProductStatusDto.isActive });
     await this.em.flush();
     return product;
   }

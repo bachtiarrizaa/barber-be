@@ -18,10 +18,6 @@ export class CreateProductDto {
   @IsOptional()
   description?: string;
 
-  @IsString()
-  @IsOptional()
-  image?: string;
-
   @IsDecimal({ decimal_digits: '0,2' })
   @IsNotEmpty()
   price!: string;
