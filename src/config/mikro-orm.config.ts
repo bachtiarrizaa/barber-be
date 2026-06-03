@@ -17,7 +17,7 @@ export const mikroOrmConfig = defineConfig({
   entitiesTs: ['src/**/*.entity.ts'],
   metadataProvider: TsMorphMetadataProvider,
   debug: appConfig.debug,
-  allowGlobalContext: true,
+  allowGlobalContext: process.env.NODE_ENV !== 'production',
   migrations: {
     path: 'dist/database/migrations',
     pathTs: 'src/database/migrations',

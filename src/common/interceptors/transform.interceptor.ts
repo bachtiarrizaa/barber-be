@@ -7,14 +7,11 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Response } from 'express';
 import { RESPONSE_MESSAGE_KEY } from '../decorators/response-message.decorator';
-
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T | null;
-}
+import {
+  ApiResponse,
+  PaginatedMeta,
+} from '../interfaces/api-response.interface';
 
 @Injectable()
 export class TransformInterceptor<T> implements NestInterceptor<
@@ -32,11 +29,28 @@ export class TransformInterceptor<T> implements NestInterceptor<
       'Success';
 
     return next.handle().pipe(
-      map((data: T) => ({
-        success: true,
-        message,
-        data: data !== undefined && data !== null ? data : null,
-      })),
+      map((result: T) => {
+        if (
+          result &&
+          typeof result === 'object' &&
+          'items' in result &&
+          'meta' in result
+        ) {
+          const { items, meta } = result as { items: T; meta: PaginatedMeta };
+          return {
+            success: true,
+            message,
+            data: items,
+            meta,
+          };
+        }
+
+        return {
+          success: true,
+          message,
+          data: result !== undefined && result !== null ? result : null,
+        };
+      }),
     );
   }
 }
