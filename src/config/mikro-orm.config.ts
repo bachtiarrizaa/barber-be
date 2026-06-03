@@ -21,6 +21,7 @@ export const mikroOrmConfig = defineConfig({
   migrations: {
     path: 'dist/database/migrations',
     pathTs: 'src/database/migrations',
+    snapshot: true,
   },
   seeder: {
     path: 'dist/database/seeders',
