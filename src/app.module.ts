@@ -7,6 +7,7 @@ import mikroOrmConfig from './config/mikro-orm.config';
 import { ProductModule } from './modules/products/products.module';
 import { TreatmentModule } from './modules/treatments/treatments.module';
 import { VoucherModule } from './modules/vouchers/vouchers.module';
+import { RoleModule } from './modules/roles/role.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { VoucherModule } from './modules/vouchers/vouchers.module';
       isGlobal: true,
     }),
     MikroOrmModule.forRoot(mikroOrmConfig),
+    RoleModule,
     ProductModule,
     TreatmentModule,
     VoucherModule,
