@@ -8,6 +8,9 @@ import { ProductModule } from './modules/products/products.module';
 import { TreatmentModule } from './modules/treatments/treatments.module';
 import { VoucherModule } from './modules/vouchers/vouchers.module';
 import { RoleModule } from './modules/roles/role.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
+import { ProfileModule } from './modules/profiles/profiles.module';
 
 @Module({
   imports: [
@@ -16,6 +19,9 @@ import { RoleModule } from './modules/roles/role.module';
     }),
     MikroOrmModule.forRoot(mikroOrmConfig),
     RoleModule,
+    UsersModule,
+    ProfileModule,
+    AuthModule,
     ProductModule,
     TreatmentModule,
     VoucherModule,

@@ -14,7 +14,7 @@ export const User = defineEntity({
       .onCreate(() => uuidv4()),
     name: p.string(),
     email: p.string().unique(),
-    password: p.string(),
+    password: p.string().hidden(),
     role: () => p.manyToOne(Role),
     treatmentCommission: p.decimal().columnType('decimal(5,2)'),
     productCommission: p.decimal().columnType('decimal(5,2)'),

@@ -1,0 +1,69 @@
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { User } from '../../users/entities/user.entity';
+import { UserRepository } from '../../users/repositories/user.repository';
+import { JwtService } from '@nestjs/jwt';
+import { LoginDto } from '../dtos/login.dto';
+import * as bcrypt from 'bcrypt';
+import { JwtPayload } from '../../../common/interfaces/jwt-payload.interface';
+import { AuthTokens } from '../interfaces/auth-tokens.interface';
+import { ITokenUser } from '../interfaces/token-user.interface';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: UserRepository,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  async login(loginDto: LoginDto): Promise<AuthTokens> {
+    const user = await this.userRepository.findOne(
+      { email: loginDto.email },
+      { populate: ['role'] },
+    );
+
+    if (!user) throw new UnauthorizedException('Invalid credentials');
+    if (!user.isActive) throw new UnauthorizedException('Account is inactive');
+
+    const passwordValid = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
+    if (!passwordValid) throw new UnauthorizedException('Invalid credentials');
+
+    return this.generateTokens(user);
+  }
+
+  async refreshToken(userId: string): Promise<AuthTokens> {
+    const user = await this.userRepository.findOne(
+      { id: userId },
+      { populate: ['role'] },
+    );
+
+    if (!user || !user.isActive)
+      throw new UnauthorizedException('Access denied');
+
+    return this.generateTokens(user);
+  }
+
+  private generateTokens(user: ITokenUser): AuthTokens {
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role.name,
+    };
+
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_ACCESS_SECRET,
+      expiresIn: '15m',
+    });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_SECRET,
+      expiresIn: '7d',
+    });
+
+    return { accessToken, refreshToken };
+  }
+}
