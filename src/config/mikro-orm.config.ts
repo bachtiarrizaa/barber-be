@@ -3,7 +3,7 @@ import { LoadStrategy, defineConfig } from '@mikro-orm/postgresql';
 import { Migrator } from '@mikro-orm/migrations';
 import { SeedManager } from '@mikro-orm/seeder';
 import { appConfig } from './app.config';
-import { TsMorphMetadataProvider } from '@mikro-orm/reflection';
+import { ReflectMetadataProvider } from '@mikro-orm/decorators/legacy';
 
 export const mikroOrmConfig = defineConfig({
   host: process.env.DB_HOST || 'localhost',
@@ -15,7 +15,7 @@ export const mikroOrmConfig = defineConfig({
   populateWhere: 'infer',
   entities: ['dist/**/*.entity.js'],
   entitiesTs: ['src/**/*.entity.ts'],
-  metadataProvider: TsMorphMetadataProvider,
+  metadataProvider: ReflectMetadataProvider,
   debug: appConfig.debug,
   allowGlobalContext: process.env.NODE_ENV !== 'production',
   migrations: {
