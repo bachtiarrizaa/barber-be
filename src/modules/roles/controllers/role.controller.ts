@@ -9,6 +9,7 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ResponseMessage } from '../../../common/decorators/response-message.decorator';
 import { RoleService } from '../services/role.service';
@@ -17,8 +18,13 @@ import { IRole } from '../entities/role.entity';
 import { FilterRoleDto } from '../dtos/filter-role.dto';
 import { PaginatedResult } from '../../../common/utils/pagination.util';
 import { UpdateRoleDto } from '../dtos/update-role.dto';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../common/guards/roles.guard';
+import { Roles } from '../../../common/decorators/roles.decorator';
 
 @Controller('roles')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin')
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 

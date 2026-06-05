@@ -1,6 +1,7 @@
 import { defineEntity, InferEntity, p } from '@mikro-orm/core';
 import { RoleRepository } from '../repositories/role.repository';
 import { v4 as uuidv4 } from 'uuid';
+import { Permission } from '../../permissions/entities/permission.entity';
 
 export const Role = defineEntity({
   name: 'Role',
@@ -11,7 +12,8 @@ export const Role = defineEntity({
       .uuid()
       .primary()
       .onCreate(() => uuidv4()),
-    name: p.string(),
+    name: p.string().unique(),
+    permissions: () => p.manyToMany(Permission).pivotTable('role_permissions'),
     createdAt: p.datetime().onCreate(() => new Date()),
     updatedAt: p
       .datetime()

@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
-import { AuthTokens } from '../interfaces/auth-tokens.interface';
+import { AuthTokens, LoginResponse } from '../interfaces/auth-tokens.interface';
 import { ResponseMessage } from '../../../common/decorators/response-message.decorator';
 import { LoginDto } from '../dtos/login.dto';
 import { JwtRefreshGuard } from '../guards/jwt-refresh.guard';
@@ -23,7 +23,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ResponseMessage('Login successful')
-  async login(@Body() loginDto: LoginDto): Promise<AuthTokens> {
+  async login(@Body() loginDto: LoginDto): Promise<LoginResponse> {
     return this.authService.login(loginDto);
   }
 
