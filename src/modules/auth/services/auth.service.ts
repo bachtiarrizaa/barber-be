@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtPayload } from '../../../common/interfaces/jwt-payload.interface';
 import { AuthTokens } from '../interfaces/auth-tokens.interface';
 import { ITokenUser } from '../interfaces/token-user.interface';
+import { TokenBlacklistService } from '../../../common/services/token-blacklist.service';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +16,7 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
+    private readonly tokenBlacklistService: TokenBlacklistService,
   ) {}
 
   async login(loginDto: LoginDto): Promise<AuthTokens> {
@@ -33,6 +35,26 @@ export class AuthService {
     if (!passwordValid) throw new UnauthorizedException('Invalid credentials');
 
     return this.generateTokens(user);
+  }
+
+  async logout(accessToken: string, refreshToken?: string): Promise<void> {
+    const decodedAccess = this.jwtService.decode(accessToken) as JwtPayload & { exp: number } | null;
+    if (decodedAccess) {
+      const ttl = decodedAccess.exp - Math.floor(Date.now() / 1000);
+      if (ttl > 0) {
+        await this.tokenBlacklistService.blacklist(accessToken, ttl);
+      }
+    }
+
+    if (refreshToken) {
+      const decodedRefresh = this.jwtService.decode(refreshToken) as JwtPayload & { exp: number } | null;
+      if (decodedRefresh) {
+        const ttl = decodedRefresh.exp - Math.floor(Date.now() / 1000);
+        if (ttl > 0) {
+          await this.tokenBlacklistService.blacklist(refreshToken, ttl);
+        }
+      }
+    }
   }
 
   async refreshToken(userId: string): Promise<AuthTokens> {
