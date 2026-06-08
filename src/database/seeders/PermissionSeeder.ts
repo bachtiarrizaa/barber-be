@@ -42,6 +42,32 @@ const permissionGroups: PermissionGroup[] = [
     ],
   },
   {
+    name: 'User Menu',
+    description: 'Akses menu manajemen user',
+    children: [
+      {
+        name: 'Lihat User',
+        actionCode: 'users:read',
+        description: 'Melihat daftar dan detail user',
+      },
+      {
+        name: 'Tambah User',
+        actionCode: 'users:create',
+        description: 'Menambahkan user baru',
+      },
+      {
+        name: 'Edit User',
+        actionCode: 'roles:update',
+        description: 'Mengubah data user',
+      },
+      {
+        name: 'Hapus User',
+        actionCode: 'users:delete',
+        description: 'Menghapus user',
+      },
+    ],
+  },
+  {
     name: 'Products Menu',
     description: 'Akses menu manajemen produk',
     children: [
