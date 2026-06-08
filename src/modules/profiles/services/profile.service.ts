@@ -1,10 +1,21 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UserRepository } from '../../users/repositories/user.repository';
-import { UserWithRole } from '../../users/entities/user.entity';
+import { User, UserWithRole } from '../../users/entities/user.entity';
+import { UpdateProfileDto } from '../dtos/update-profile.dto';
+import { EntityManager } from '@mikro-orm/postgresql';
+import { InjectRepository } from '@mikro-orm/nestjs';
 
 @Injectable()
 export class ProfileService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: UserRepository,
+    private readonly em: EntityManager,
+  ) {}
 
   async getProfileMe(userId: string): Promise<UserWithRole> {
     const user = await this.userRepository.findOne(
@@ -27,6 +38,31 @@ export class ProfileService {
     );
 
     if (!user) throw new UnauthorizedException('Unauthorized');
+    return user;
+  }
+
+  async updateProfile(
+    userId: string,
+    updateProfileDto: UpdateProfileDto,
+  ): Promise<UserWithRole> {
+    const user = await this.userRepository.findOne({ id: userId });
+    if (!user) throw new UnauthorizedException('Unauthorized');
+
+    if (updateProfileDto.name && updateProfileDto.name !== user.name) {
+      const existName = await this.userRepository.findOne({
+        name: updateProfileDto.name,
+      });
+      if (existName) {
+        throw new ConflictException('User with this name already exists');
+      }
+    }
+
+    const userData = {
+      ...(updateProfileDto.name && { name: updateProfileDto.name }),
+    };
+
+    this.em.assign(user, userData);
+    await this.em.flush();
     return user;
   }
 }
