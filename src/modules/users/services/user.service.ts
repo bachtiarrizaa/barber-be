@@ -12,6 +12,11 @@ import { EntityManager } from '@mikro-orm/postgresql';
 import { Role } from '../../roles/entities/role.entity';
 import { RoleRepository } from '../../roles/repositories/role.repository';
 import * as bcrypt from 'bcrypt';
+import { FilterUserDto } from '../entities/filter-user.dto';
+import {
+  paginate,
+  PaginatedResult,
+} from '../../../common/utils/pagination.util';
 
 @Injectable()
 export class UserService {
@@ -59,6 +64,27 @@ export class UserService {
 
     const user = this.userRepository.create(userData);
     await this.em.flush();
+    return user;
+  }
+
+  async findUsers(filterDto: FilterUserDto): Promise<PaginatedResult<IUser>> {
+    const { isActive, ...paginationQuery } = filterDto;
+
+    const filters: Partial<{ isActive: boolean }> = {};
+    if (isActive !== undefined) {
+      filters.isActive = isActive;
+    }
+
+    return paginate<IUser>(this.userRepository, paginationQuery, {
+      searchFields: ['name', 'email'],
+      filters,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findById(userId: string): Promise<IUser> {
+    const user = await this.userRepository.findOne({ id: userId });
+    if (!user) throw new NotFoundException('User not found');
     return user;
   }
 }
