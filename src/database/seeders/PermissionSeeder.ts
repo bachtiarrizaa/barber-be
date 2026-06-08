@@ -16,6 +16,32 @@ interface PermissionGroup {
 
 const permissionGroups: PermissionGroup[] = [
   {
+    name: 'Roles Menu',
+    description: 'Akses menu manajemen role',
+    children: [
+      {
+        name: 'Lihat Role',
+        actionCode: 'roles:read',
+        description: 'Melihat daftar dan detail role',
+      },
+      {
+        name: 'Tambah Role',
+        actionCode: 'roles:create',
+        description: 'Menambahkan role baru',
+      },
+      {
+        name: 'Edit Role',
+        actionCode: 'roles:update',
+        description: 'Mengubah data role',
+      },
+      {
+        name: 'Hapus Role',
+        actionCode: 'roles:delete',
+        description: 'Menghapus role',
+      },
+    ],
+  },
+  {
     name: 'Products Menu',
     description: 'Akses menu manajemen produk',
     children: [
