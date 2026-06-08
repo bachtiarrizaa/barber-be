@@ -57,7 +57,7 @@ const permissionGroups: PermissionGroup[] = [
       },
       {
         name: 'Edit User',
-        actionCode: 'roles:update',
+        actionCode: 'users:update',
         description: 'Mengubah data user',
       },
       {

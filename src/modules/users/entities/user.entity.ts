@@ -1,7 +1,7 @@
 import { defineEntity, InferEntity, p } from '@mikro-orm/core';
 import { UserRepository } from '../repositories/user.repository';
 import { v4 as uuidv4 } from 'uuid';
-import { Role } from '../../roles/entities/role.entity';
+import { IRole, Role } from '../../roles/entities/role.entity';
 
 export const User = defineEntity({
   name: 'User',
@@ -28,3 +28,7 @@ export const User = defineEntity({
 });
 
 export type IUser = InferEntity<typeof User>;
+
+export type UserWithRole = Omit<IUser, 'password' | 'role'> & {
+  role: Pick<IRole, 'id' | 'name'>;
+};
