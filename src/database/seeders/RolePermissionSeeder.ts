@@ -5,7 +5,13 @@ import { Role } from '../../modules/roles/entities/role.entity';
 
 const rolePermissionMap: Record<string, string[] | 'all'> = {
   admin: 'all',
-  cashier: ['roles:read, products:read', 'treatments:read', 'vouchers:read'],
+  cashier: [
+    'users:read',
+    'roles:read',
+    'products:read',
+    'treatments:read',
+    'vouchers:read',
+  ],
   barber: ['products:read', 'treatments:read', 'vouchers:read'],
 };
 
