@@ -4,7 +4,6 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
@@ -38,7 +37,7 @@ export class PermissionGuard implements CanActivate {
       { populate: ['permissions'] },
     );
 
-    if (!role) throw new NotFoundException('Role not found');
+    if (!role) throw new ForbiddenException('Role not found or access denied');
 
     const userActionCode = role.permissions
       .getItems()

@@ -19,18 +19,18 @@ import { FilterRoleDto } from '../dtos/filter-role.dto';
 import { PaginatedResult } from '../../../common/utils/pagination.util';
 import { UpdateRoleDto } from '../dtos/update-role.dto';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
-import { Roles } from '../../../common/decorators/roles.decorator';
+import { PermissionGuard } from '../../../common/guards/permission.guard';
+import { Permissions } from '../../../common/decorators/permission.decorator';
 
 @Controller('roles')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin')
+@UseGuards(JwtAuthGuard, PermissionGuard)
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ResponseMessage('Role created successfully')
+  @Permissions('roles:create')
   async create(@Body() createRoleDto: CreateRoleDto): Promise<IRole> {
     return this.roleService.create(createRoleDto);
   }
@@ -38,6 +38,7 @@ export class RoleController {
   @Get()
   @HttpCode(HttpStatus.OK)
   @ResponseMessage('Role retrieved successfully')
+  @Permissions('roles:read')
   async findAll(
     @Query() filterDto: FilterRoleDto,
   ): Promise<PaginatedResult<IRole>> {
@@ -47,6 +48,7 @@ export class RoleController {
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @ResponseMessage('Role retrieved successfully')
+  @Permissions('roles:read')
   async findById(@Param('id') id: string): Promise<IRole> {
     return this.roleService.findById(id);
   }
@@ -54,6 +56,7 @@ export class RoleController {
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   @ResponseMessage('Role updated successfully')
+  @Permissions('roles:update')
   async update(
     @Param('id') id: string,
     @Body() updateRoleDto: UpdateRoleDto,
@@ -64,6 +67,7 @@ export class RoleController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ResponseMessage('Role deleted successfully')
+  @Permissions('roles:delete')
   async delete(@Param('id') id: string) {
     return this.roleService.delete(id);
   }
