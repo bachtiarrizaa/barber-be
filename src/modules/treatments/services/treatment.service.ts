@@ -8,7 +8,7 @@ import {
   PaginatedResult,
 } from '../../../common/utils/pagination.util';
 import { FilterTreatmentDto } from '../dtos/filter-treatment.dto';
-import { Logger, NotFoundException } from '@nestjs/common';
+import { ConflictException, Logger, NotFoundException } from '@nestjs/common';
 import { UpdateTreatmentDto } from '../dtos/update-treatment.dto';
 import { join } from 'path';
 import * as fs from 'fs';
@@ -42,10 +42,27 @@ export class TreatmentService {
     createTreatmentDto: CreateTreatmentDto,
     file?: Express.Multer.File,
   ): Promise<ITreatment> {
-    const treatment = this.treatmentRepository.create({
-      ...createTreatmentDto,
-      image: file ? `/uploads/treatments/${file.filename}` : null,
+    const existName = await this.treatmentRepository.findOne({
+      name: createTreatmentDto.name,
     });
+    if (existName) {
+      throw new ConflictException('Treatment with this name already exist');
+    }
+
+    const treatmentData = {
+      name: createTreatmentDto.name,
+      description: createTreatmentDto.description ?? null,
+      price: createTreatmentDto.price,
+      isActive: createTreatmentDto.isActive ?? true,
+    };
+
+    const imageData = file ? `/uploads/treatments${file.filename}` : null;
+
+    const treatment = this.treatmentRepository.create({
+      ...treatmentData,
+      image: imageData,
+    });
+
     await this.em.persist(treatment).flush();
     return treatment;
   }
@@ -69,7 +86,9 @@ export class TreatmentService {
 
   async findById(id: string): Promise<ITreatment> {
     const treatment = await this.treatmentRepository.findOne({ id });
-    if (!treatment) throw new NotFoundException('Treatment not found');
+    if (!treatment) {
+      throw new NotFoundException('Treatment not found');
+    }
     return treatment;
   }
 
@@ -79,18 +98,21 @@ export class TreatmentService {
     file?: Express.Multer.File,
   ): Promise<ITreatment> {
     const treatment = await this.findById(id);
-    const updateData: UpdateTreatmentDto & { image?: string | null } = {
-      ...updateTreatmentDto,
+
+    const treatmentData = {
+      ...(updateTreatmentDto.name && { name: updateTreatmentDto.name }),
+      ...(updateTreatmentDto.description && {
+        description: updateTreatmentDto.description,
+      }),
+      ...(updateTreatmentDto.price && { price: updateTreatmentDto.price }),
+      ...(file && { image: `/uploads/treatments/${file.filename}` }),
     };
 
-    if (file) {
-      if (treatment.image) {
-        await this.deleteImageFile(treatment.image);
-      }
-      updateData.image = `/uploads/products/${file.filename}`;
+    if (file && treatment.image) {
+      await this.deleteImageFile(treatment.image);
     }
 
-    this.em.assign(treatment, updateData);
+    this.em.assign(treatment, treatmentData);
     await this.em.flush();
     return treatment;
   }
@@ -100,7 +122,14 @@ export class TreatmentService {
     updateTreatmentStatusDto: UpdateTreatmentStatusDto,
   ): Promise<ITreatment> {
     const treatment = await this.findById(id);
-    this.em.assign(treatment, { isActive: updateTreatmentStatusDto.isActive });
+
+    const treatmentData = {
+      ...(updateTreatmentStatusDto.isActive !== undefined && {
+        isActive: updateTreatmentStatusDto.isActive,
+      }),
+    };
+
+    this.em.assign(treatment, treatmentData);
     await this.em.flush();
     return treatment;
   }
