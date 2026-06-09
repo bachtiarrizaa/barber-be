@@ -22,10 +22,20 @@ export class VoucherService {
     const existVoucher = await this.voucherRepository.findOne({
       name: createVoucherDto.name,
     });
-    if (existVoucher)
+    if (existVoucher) {
       throw new ConflictException('Voucher with this name already exist');
+    }
 
-    const voucher = this.voucherRepository.create(createVoucherDto);
+    const voucherData = {
+      name: createVoucherDto.name,
+      description: createVoucherDto.description ?? null,
+      pointsRequired: createVoucherDto.pointsRequired,
+      type: createVoucherDto.type,
+      value: createVoucherDto.value,
+      isActive: createVoucherDto.isActive ?? true,
+    };
+
+    const voucher = this.voucherRepository.create(voucherData);
     await this.em.persist(voucher).flush();
     return voucher;
   }
@@ -33,10 +43,16 @@ export class VoucherService {
   async findAll(
     filterDto: FilterVoucherDto,
   ): Promise<PaginatedResult<IVoucher>> {
-    const { ...paginationQuery } = filterDto;
+    const { isActive, ...paginationQuery } = filterDto;
+
+    const filters: Partial<{ isActive }> = {};
+    if (isActive !== undefined) {
+      filters.isActive = isActive;
+    }
 
     return paginate<IVoucher>(this.voucherRepository, paginationQuery, {
       searchFields: ['name'],
+      filters,
       orderBy: { createdAt: 'Desc' },
     });
   }
@@ -62,7 +78,19 @@ export class VoucherService {
       }
     }
 
-    this.em.assign(voucher, updateVoucherDto);
+    const voucherData = {
+      ...(updateVoucherDto.name && { name: updateVoucherDto.name }),
+      ...(updateVoucherDto.description && {
+        description: updateVoucherDto.description,
+      }),
+      ...(updateVoucherDto.pointsRequired && {
+        pointsRequired: updateVoucherDto.pointsRequired,
+      }),
+      ...(updateVoucherDto.type && { type: updateVoucherDto.type }),
+      ...(updateVoucherDto.value && { value: updateVoucherDto.value }),
+    };
+
+    this.em.assign(voucher, voucherData);
     await this.em.flush();
     return voucher;
   }
@@ -72,7 +100,14 @@ export class VoucherService {
     updateVoucherStatusDto: UpdateVoucherDto,
   ): Promise<IVoucher> {
     const voucher = await this.findById(id);
-    this.em.assign(voucher, { isActive: updateVoucherStatusDto.isActive });
+
+    const voucherData = {
+      ...(updateVoucherStatusDto.isActive !== undefined && {
+        isActive: updateVoucherStatusDto.isActive,
+      }),
+    };
+
+    this.em.assign(voucher, voucherData);
     await this.em.flush();
     return voucher;
   }
