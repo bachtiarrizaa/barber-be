@@ -26,8 +26,12 @@ export class RoleService {
       throw new ConflictException('Role with this name already exist');
     }
 
-    const role = this.roleRepository.create(createRoleDto);
-    await this.em.persist(role).flush();
+    const roleData = {
+      name: createRoleDto.name,
+    };
+
+    const role = this.roleRepository.create(roleData);
+    await this.em.flush();
     return role;
   }
 
@@ -42,7 +46,9 @@ export class RoleService {
 
   async findById(id: string): Promise<IRole> {
     const role = await this.roleRepository.findOne(id);
-    if (!role) throw new NotFoundException('Role not found');
+    if (!role) {
+      throw new NotFoundException('Role not found');
+    }
     return role;
   }
 
@@ -58,7 +64,11 @@ export class RoleService {
       }
     }
 
-    this.em.assign(role, updateRoleDto);
+    const roleData = {
+      ...(updateRoleDto.name && { name: updateRoleDto.name }),
+    };
+
+    this.em.assign(role, roleData);
     await this.em.flush();
     return role;
   }
