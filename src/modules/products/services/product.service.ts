@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { Product, IProduct } from '../entities/product.entity';
 import { ProductRepository } from '../repositories/product.repository';
@@ -43,10 +48,28 @@ export class ProductService {
     createProductDto: CreateProductDto,
     file?: Express.Multer.File,
   ): Promise<IProduct> {
-    const product = this.productRepository.create({
-      ...createProductDto,
-      image: file ? `/uploads/products/${file.filename}` : null,
+    const existName = await this.productRepository.findOne({
+      name: createProductDto.name,
     });
+    if (existName) {
+      throw new ConflictException('Product with this name already exist');
+    }
+
+    const productData = {
+      name: createProductDto.name,
+      description: createProductDto.description ?? null,
+      price: createProductDto.price,
+      stock: createProductDto.stock,
+      isActive: createProductDto.isActive ?? true,
+    };
+
+    const imagedata = file ? `/uploads/product/${file?.filename}` : null;
+
+    const product = this.productRepository.create({
+      ...productData,
+      image: imagedata,
+    });
+
     await this.em.persist(product).flush();
     return product;
   }
@@ -70,7 +93,9 @@ export class ProductService {
 
   async findById(id: string): Promise<IProduct> {
     const product = await this.productRepository.findOne({ id });
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
     return product;
   }
 
@@ -80,18 +105,20 @@ export class ProductService {
     file?: Express.Multer.File,
   ): Promise<IProduct> {
     const product = await this.findById(id);
-    const updateData: UpdateProductDto & { image?: string | null } = {
-      ...updateProductDto,
+    const productData = {
+      ...(updateProductDto.name && { name: updateProductDto.name }),
+      ...(updateProductDto.description && {
+        description: updateProductDto.description,
+      }),
+      ...(updateProductDto.price && { price: updateProductDto.price }),
+      ...(file && { image: `/uploads/treatments/${file.filename}` }),
     };
 
-    if (file) {
-      if (product.image) {
-        await this.deleteImageFile(product.image);
-      }
-      updateData.image = `/uploads/products/${file.filename}`;
+    if (file && product.image) {
+      await this.deleteImageFile(product.image);
     }
 
-    this.em.assign(product, updateData);
+    this.em.assign(product, productData);
     await this.em.flush();
     return product;
   }
@@ -101,7 +128,14 @@ export class ProductService {
     updateProductStatusDto: UpdateProductStatusDto,
   ): Promise<IProduct> {
     const product = await this.findById(id);
-    this.em.assign(product, { isActive: updateProductStatusDto.isActive });
+
+    const productData = {
+      ...(updateProductStatusDto.isActive !== undefined && {
+        isActive: updateProductStatusDto.isActive,
+      }),
+    };
+
+    this.em.assign(product, productData);
     await this.em.flush();
     return product;
   }
