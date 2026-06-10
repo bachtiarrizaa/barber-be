@@ -46,7 +46,6 @@ export class TreatmentController {
   }
 
   @Get()
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Treatments retrieved successfully')
   @Permissions('treatments:read')
   async findAll(
@@ -56,7 +55,6 @@ export class TreatmentController {
   }
 
   @Get(':id')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Treatments retrieved successfully')
   @Permissions('treatments:read')
   async findById(@Param('id') id: string): Promise<ITreatment> {
@@ -64,7 +62,6 @@ export class TreatmentController {
   }
 
   @Put(':id')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Treatment updated succesfully')
   @UseInterceptors(FileInterceptor('image', multerConfig('treatments')))
   @Permissions('treatments:update')
@@ -77,7 +74,6 @@ export class TreatmentController {
   }
 
   @Patch(':id/status')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Treatment status updated successfully')
   @Permissions('treatments:update')
   async updateStatus(
@@ -88,7 +84,6 @@ export class TreatmentController {
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Treatment deleted successfully')
   @Permissions('treatments:delete')
   async delete(@Param('id') id: string): Promise<void> {

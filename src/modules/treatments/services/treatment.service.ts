@@ -8,62 +8,38 @@ import {
   PaginatedResult,
 } from '../../../common/utils/pagination.util';
 import { FilterTreatmentDto } from '../dtos/filter-treatment.dto';
-import { ConflictException, Logger, NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { UpdateTreatmentDto } from '../dtos/update-treatment.dto';
-import { join } from 'path';
-import * as fs from 'fs';
 import { UpdateTreatmentStatusDto } from '../dtos/update-treatment-status.dto';
+import { FileService } from '../../../common/services/file.service';
 
 export class TreatmentService {
   constructor(
     @InjectRepository(Treatment)
     private readonly treatmentRepository: TreatmentRepository,
     private readonly em: EntityManager,
+    private readonly fileService: FileService,
   ) {}
-
-  private readonly logger = new Logger(TreatmentService.name);
-
-  private async deleteImageFile(
-    imagePath: string | null | undefined,
-  ): Promise<void> {
-    if (!imagePath) return;
-    try {
-      const fullPath = join(process.cwd(), imagePath);
-      await fs.promises.access(fullPath);
-      await fs.promises.unlink(fullPath);
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-        this.logger.error(`Failed to delete image file: ${imagePath}`, error);
-      }
-    }
-  }
 
   async create(
     createTreatmentDto: CreateTreatmentDto,
     file?: Express.Multer.File,
   ): Promise<ITreatment> {
-    const existName = await this.treatmentRepository.findOne({
-      name: createTreatmentDto.name,
-    });
+    const existName = await this.treatmentRepository.findByName(
+      createTreatmentDto.name,
+    );
     if (existName) {
       throw new ConflictException('Treatment with this name already exist');
     }
 
-    const treatmentData = {
-      name: createTreatmentDto.name,
-      description: createTreatmentDto.description ?? null,
-      price: createTreatmentDto.price,
-      isActive: createTreatmentDto.isActive ?? true,
-    };
-
-    const imageData = file ? `/uploads/treatments${file.filename}` : null;
-
     const treatment = this.treatmentRepository.create({
-      ...treatmentData,
-      image: imageData,
+      ...createTreatmentDto,
+      image: file
+        ? this.fileService.getImagePath('treatments', file.filename)
+        : null,
     });
 
-    await this.em.persist(treatment).flush();
+    await this.em.flush();
     return treatment;
   }
 
@@ -80,7 +56,7 @@ export class TreatmentService {
     return paginate<ITreatment>(this.treatmentRepository, paginationQuery, {
       searchFields: ['name'],
       filters,
-      orderBy: { createdAt: 'Desc' },
+      orderBy: { createdAt: 'DESC' },
     });
   }
 
@@ -99,17 +75,24 @@ export class TreatmentService {
   ): Promise<ITreatment> {
     const treatment = await this.findById(id);
 
-    const treatmentData = {
-      ...(updateTreatmentDto.name && { name: updateTreatmentDto.name }),
-      ...(updateTreatmentDto.description && {
-        description: updateTreatmentDto.description,
+    if (updateTreatmentDto.name && updateTreatmentDto.name !== treatment.name) {
+      const existName = await this.treatmentRepository.findByName(
+        updateTreatmentDto.name,
+      );
+      if (existName) {
+        throw new ConflictException('Treatment with this name already exist');
+      }
+    }
+
+    const treatmentData: Partial<ITreatment> = {
+      ...updateTreatmentDto,
+      ...(file && {
+        image: this.fileService.getImagePath('treatments', file.filename),
       }),
-      ...(updateTreatmentDto.price && { price: updateTreatmentDto.price }),
-      ...(file && { image: `/uploads/treatments/${file.filename}` }),
     };
 
     if (file && treatment.image) {
-      await this.deleteImageFile(treatment.image);
+      await this.fileService.deleteImage(treatment.image);
     }
 
     this.em.assign(treatment, treatmentData);
@@ -122,14 +105,9 @@ export class TreatmentService {
     updateTreatmentStatusDto: UpdateTreatmentStatusDto,
   ): Promise<ITreatment> {
     const treatment = await this.findById(id);
-
-    const treatmentData = {
-      ...(updateTreatmentStatusDto.isActive !== undefined && {
-        isActive: updateTreatmentStatusDto.isActive,
-      }),
-    };
-
-    this.em.assign(treatment, treatmentData);
+    this.em.assign(treatment, {
+      isActive: updateTreatmentStatusDto.isActive,
+    });
     await this.em.flush();
     return treatment;
   }
@@ -137,7 +115,7 @@ export class TreatmentService {
   async delete(id: string): Promise<void> {
     const treatment = await this.findById(id);
     if (treatment.image) {
-      await this.deleteImageFile(treatment.image);
+      await this.fileService.deleteImage(treatment.image);
     }
     await this.em.remove(treatment).flush();
   }
