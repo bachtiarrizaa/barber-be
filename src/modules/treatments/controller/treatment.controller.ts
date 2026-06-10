@@ -36,7 +36,7 @@ export class TreatmentController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ResponseMessage('Treatment created successfully')
-  @UseInterceptors(FileInterceptor('image', multerConfig))
+  @UseInterceptors(FileInterceptor('image', multerConfig('treatments')))
   @Permissions('treatments:create')
   async create(
     @Body() createTreatmentDto: CreateTreatmentDto,
@@ -66,7 +66,7 @@ export class TreatmentController {
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   @ResponseMessage('Treatment updated succesfully')
-  @UseInterceptors(FileInterceptor('image', multerConfig))
+  @UseInterceptors(FileInterceptor('image', multerConfig('treatments')))
   @Permissions('treatments:update')
   async update(
     @Param('id') id: string,

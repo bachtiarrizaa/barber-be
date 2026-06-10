@@ -11,7 +11,7 @@ export const Product = defineEntity({
       .uuid()
       .primary()
       .onCreate(() => uuidv4()),
-    name: p.string(),
+    name: p.string().unique(),
     description: p.text().nullable(),
     image: p.string().nullable(),
     price: p.decimal().columnType('decimal(10, 2)'),
