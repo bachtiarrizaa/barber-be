@@ -17,6 +17,8 @@ export interface PaginatedResult<T> {
   };
 }
 
+const MAX_LIMIT = 100;
+
 export interface PaginateOptions<T extends object> {
   searchFields?: (keyof T)[];
   filters?: FilterQuery<T>;
@@ -31,6 +33,8 @@ export async function paginate<T extends object>(
   const { page, limit, search } = query;
   const { searchFields = [], filters = {}, orderBy } = options;
 
+  const safePage = Math.max(1, page);
+  const safeLimit = Math.max(limit, MAX_LIMIT);
   const offset = (page - 1) * limit;
 
   let where: FilterQuery<T> = { ...filters };
@@ -62,11 +66,11 @@ export async function paginate<T extends object>(
     items,
     meta: {
       total,
-      page,
-      limit,
+      page: safePage,
+      limit: safeLimit,
       totalPages,
-      hasNextPage: page < totalPages,
-      hasPrevPage: page > 1,
+      hasNextPage: safePage < totalPages,
+      hasPrevPage: safePage > 1,
     },
   };
 }

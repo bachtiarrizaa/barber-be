@@ -1,7 +1,8 @@
-import { IsBoolean, IsNotEmpty } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsBoolean } from 'class-validator';
 
 export class UpdateProductStatusDto {
+  @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
-  @IsNotEmpty()
   isActive!: boolean;
 }

@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Post,
-  Put,
   Delete,
   Param,
   Body,
@@ -21,12 +20,12 @@ import { UpdateProductDto } from '../dtos/update-product.dto';
 import { FilterProductDto } from '../dtos/filter-product.dto';
 import { IProduct } from '../entities/product.entity';
 import { ResponseMessage } from '../../../common/decorators/response-message.decorator';
-import { multerConfig } from '../../../config/upload.config';
 import { PaginatedResult } from '../../../common/utils/pagination.util';
 import { UpdateProductStatusDto } from '../dtos/update-product-status.dto';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { PermissionGuard } from '../../../common/guards/permission.guard';
 import { Permissions } from '../../../common/decorators/permission.decorator';
+import { multerConfig } from '../../../config/upload.config';
 
 @Controller('products')
 @UseGuards(JwtAuthGuard, PermissionGuard)
@@ -36,7 +35,7 @@ export class ProductController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ResponseMessage('Product created successfully')
-  @UseInterceptors(FileInterceptor('image', multerConfig))
+  @UseInterceptors(FileInterceptor('image', multerConfig('products')))
   @Permissions('products:create')
   async create(
     @Body() createProductDto: CreateProductDto,
@@ -46,7 +45,6 @@ export class ProductController {
   }
 
   @Get()
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Products retrieved successfully')
   @Permissions('products:read')
   async findAll(
@@ -56,18 +54,16 @@ export class ProductController {
   }
 
   @Get(':id')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Product retrieved successfully')
   @Permissions('products:read')
   async findById(@Param('id') id: string): Promise<IProduct> {
     return this.productService.findById(id);
   }
 
-  @Put(':id')
-  @HttpCode(HttpStatus.OK)
+  @Patch(':id')
   @ResponseMessage('Product updated successfully')
   @Permissions('products:update')
-  @UseInterceptors(FileInterceptor('image', multerConfig))
+  @UseInterceptors(FileInterceptor('image', multerConfig('products')))
   async update(
     @Param('id') id: string,
     @Body() updateProductDto: UpdateProductDto,
@@ -77,7 +73,6 @@ export class ProductController {
   }
 
   @Patch(':id/status')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Product status updated successfully')
   @Permissions('products:update')
   async updateStatus(
@@ -89,7 +84,6 @@ export class ProductController {
 
   @Delete(':id')
   @Permissions('products:delete')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Product deleted successfully')
   async delete(@Param('id') id: string): Promise<void> {
     return this.productService.delete(id);
