@@ -36,8 +36,7 @@ export class RoleController {
   }
 
   @Get()
-  @HttpCode(HttpStatus.OK)
-  @ResponseMessage('Role retrieved successfully')
+  @ResponseMessage('Roles retrieved successfully')
   @Permissions('roles:read')
   async findAll(
     @Query() filterDto: FilterRoleDto,
@@ -46,7 +45,6 @@ export class RoleController {
   }
 
   @Get(':id')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Role retrieved successfully')
   @Permissions('roles:read')
   async findById(@Param('id') id: string): Promise<IRole> {
@@ -54,7 +52,6 @@ export class RoleController {
   }
 
   @Put(':id')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Role updated successfully')
   @Permissions('roles:update')
   async update(
@@ -65,7 +62,6 @@ export class RoleController {
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Role deleted successfully')
   @Permissions('roles:delete')
   async delete(@Param('id') id: string) {

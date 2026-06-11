@@ -37,26 +37,23 @@ export class UserController {
   }
 
   @Get()
-  @HttpCode(HttpStatus.OK)
-  @ResponseMessage('User retrieved successfully')
+  @ResponseMessage('Users retrieved successfully')
   @Permissions('users:read')
-  async findUsers(
+  async findAll(
     @Query() filterDto: FilterUserDto,
   ): Promise<PaginatedResult<IUser>> {
-    return this.userService.findUsers(filterDto);
+    return this.userService.findAll(filterDto);
   }
 
   @Get(':id')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('User retrieved successfully')
   @Permissions('users:read')
   async findById(@Param('id') userId: string): Promise<UserWithRole> {
-    return await this.userService.findById(userId);
+    return this.userService.findById(userId);
   }
 
   @Patch(':id')
-  @HttpCode(HttpStatus.OK)
-  @ResponseMessage('Updated user successfully')
+  @ResponseMessage('User updated successfully')
   @Permissions('users:update')
   async update(
     @Param('id') userId: string,
@@ -66,7 +63,6 @@ export class UserController {
   }
 
   @Patch(':id/status')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('User status updated successfully')
   @Permissions('users:update')
   async updateStatus(
@@ -77,7 +73,6 @@ export class UserController {
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('User deleted successfully')
   @Permissions('users:delete')
   async delete(@Param('id') userId: string): Promise<void> {

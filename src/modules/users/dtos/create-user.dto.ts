@@ -33,7 +33,7 @@ export class CreateUserDto {
   @IsNotEmpty()
   productCommission!: string;
 
-  @Transform(({ value }) => value === ' true' || value === true)
+  @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   @IsNotEmpty()
   isActive!: boolean;

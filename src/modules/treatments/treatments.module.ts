@@ -1,7 +1,7 @@
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
 import { Treatment } from './entities/treatment.entity';
-import { TreatmentController } from './controller/treatment.controller';
+import { TreatmentController } from './controllers/treatment.controller';
 import { TreatmentService } from './services/treatment.service';
 import { CommonModule } from '../../common/common.module';
 

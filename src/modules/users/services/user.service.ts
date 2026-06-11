@@ -9,8 +9,7 @@ import { UserRepository } from '../repositories/user.repository';
 import { IUser } from '../entities/user.entity';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { EntityManager } from '@mikro-orm/postgresql';
-import { Role } from '../../roles/entities/role.entity';
-import { RoleRepository } from '../../roles/repositories/role.repository';
+import { RoleService } from '../../roles/services/role.service';
 import * as bcrypt from 'bcrypt';
 import { FilterUserDto } from '../dtos/filter-user.dto';
 import {
@@ -25,36 +24,23 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: UserRepository,
-    @InjectRepository(Role)
-    private readonly roleRepository: RoleRepository,
+    private readonly roleService: RoleService,
     private readonly em: EntityManager,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<IUser> {
-    const existName = await this.userRepository.findOne({
-      name: createUserDto.name,
-    });
-    if (existName) {
-      throw new ConflictException('User with this name already exist');
-    }
-
-    const existEmail = await this.userRepository.findOne({
-      email: createUserDto.email,
-    });
+    const existEmail = await this.userRepository.findByEmail(
+      createUserDto.email,
+    );
     if (existEmail) {
       throw new ConflictException('User with this email already exist');
     }
 
-    const role = await this.roleRepository.findOne({
-      id: createUserDto.roleId,
-    });
-    if (!role) {
-      throw new NotFoundException('Role not found');
-    }
+    const role = await this.roleService.findById(createUserDto.roleId);
 
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
-    const userData = {
+    const user = this.userRepository.create({
       name: createUserDto.name,
       email: createUserDto.email,
       treatmentCommission: createUserDto.treatmentCommission,
@@ -62,14 +48,13 @@ export class UserService {
       isActive: createUserDto.isActive,
       password: hashedPassword,
       role,
-    };
+    });
 
-    const user = this.userRepository.create(userData);
     await this.em.flush();
     return user;
   }
 
-  async findUsers(filterDto: FilterUserDto): Promise<PaginatedResult<IUser>> {
+  async findAll(filterDto: FilterUserDto): Promise<PaginatedResult<IUser>> {
     const { isActive, ...paginationQuery } = filterDto;
 
     const filters: Partial<{ isActive: boolean }> = {};
@@ -80,7 +65,7 @@ export class UserService {
     return paginate<IUser>(this.userRepository, paginationQuery, {
       searchFields: ['name', 'email'],
       filters,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'DESC' },
     });
   }
 
@@ -110,41 +95,25 @@ export class UserService {
   }
 
   async update(userId: string, updateUserDto: UpdateUserDto): Promise<IUser> {
-    const user = await this.userRepository.findOne({ id: userId });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    const user = await this.findByIdOrFail(userId);
 
     if (updateUserDto.name && updateUserDto.name !== user.name) {
-      const existName = await this.userRepository.findOne({
-        name: updateUserDto.name,
-      });
+      const existName = await this.userRepository.findByName(
+        updateUserDto.name,
+      );
       if (existName) {
         throw new ConflictException('User with this name already exist');
       }
     }
 
-    let role = user.role;
-    if (updateUserDto.roleId) {
-      const findRole = await this.roleRepository.findOne({
-        id: updateUserDto.roleId,
-      });
-      if (!findRole) {
-        throw new NotFoundException('Role not found');
-      }
-      role = findRole;
-    }
+    const { roleId, ...updateUserData } = updateUserDto;
 
-    const userData = {
-      ...(updateUserDto.name && { name: updateUserDto.name }),
-      ...(updateUserDto.treatmentCommission && {
-        treatmentCommission: updateUserDto.treatmentCommission,
-      }),
-      ...(updateUserDto.productCommission && {
-        productCommission: updateUserDto.productCommission,
-      }),
-      ...(updateUserDto.roleId && { role }),
-    };
+    const userData: Partial<IUser> = { ...updateUserData };
+
+    if (roleId) {
+      const role = await this.roleService.findById(roleId);
+      userData.role = role;
+    }
 
     this.em.assign(user, userData);
     await this.em.flush();
@@ -155,28 +124,22 @@ export class UserService {
     userId: string,
     updateUserStatusDto: UpdateUserStatusDto,
   ): Promise<IUser> {
-    const user = await this.userRepository.findOne({ id: userId });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const userData = {
-      ...(updateUserStatusDto.isActive !== undefined && {
-        isActive: updateUserStatusDto.isActive,
-      }),
-    };
-
-    this.em.assign(user, userData);
+    const user = await this.findByIdOrFail(userId);
+    this.em.assign(user, { isActive: updateUserStatusDto.isActive });
     await this.em.flush();
     return user;
   }
 
   async delete(userId: string): Promise<void> {
+    const user = await this.findByIdOrFail(userId);
+    await this.em.remove(user).flush();
+  }
+
+  private async findByIdOrFail(userId: string): Promise<IUser> {
     const user = await this.userRepository.findOne({ id: userId });
     if (!user) {
       throw new NotFoundException('User not found');
     }
-
-    await this.em.remove(user).flush();
+    return user;
   }
 }

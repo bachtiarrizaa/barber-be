@@ -23,7 +23,7 @@ import { ITreatment } from '../entities/treatment.entity';
 import { FilterTreatmentDto } from '../dtos/filter-treatment.dto';
 import { PaginatedResult } from '../../../common/utils/pagination.util';
 import { UpdateTreatmentDto } from '../dtos/update-treatment.dto';
-import { UpdateProductStatusDto } from '../../products/dtos/update-product-status.dto';
+import { UpdateTreatmentStatusDto } from '../dtos/update-treatment-status.dto';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { PermissionGuard } from '../../../common/guards/permission.guard';
 import { Permissions } from '../../../common/decorators/permission.decorator';
@@ -78,7 +78,7 @@ export class TreatmentController {
   @Permissions('treatments:update')
   async updateStatus(
     @Param('id') id: string,
-    @Body() updateTreatmentStatusDto: UpdateProductStatusDto,
+    @Body() updateTreatmentStatusDto: UpdateTreatmentStatusDto,
   ): Promise<ITreatment> {
     return this.treatmentService.updateStatus(id, updateTreatmentStatusDto);
   }

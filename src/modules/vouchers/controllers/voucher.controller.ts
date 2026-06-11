@@ -19,7 +19,7 @@ import { VoucherService } from '../services/voucher.service';
 import { FilterVoucherDto } from '../dtos/filter-voucher.dto';
 import { PaginatedResult } from '../../../common/utils/pagination.util';
 import { UpdateVoucherDto } from '../dtos/update-voucher.dto';
-import { UpdateVoucherStatusDto } from '../dtos/update-voucher-status';
+import { UpdateVoucherStatusDto } from '../dtos/update-voucher-status.dto';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { PermissionGuard } from '../../../common/guards/permission.guard';
 import { Permissions } from '../../../common/decorators/permission.decorator';
@@ -38,8 +38,7 @@ export class VoucherController {
   }
 
   @Get()
-  @HttpCode(HttpStatus.OK)
-  @ResponseMessage('Voucher retrieved successfully')
+  @ResponseMessage('Vouchers retrieved successfully')
   @Permissions('vouchers:read')
   async findAll(
     @Query() filterDto: FilterVoucherDto,
@@ -48,7 +47,6 @@ export class VoucherController {
   }
 
   @Get(':id')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Voucher retrieved successfully')
   @Permissions('vouchers:read')
   async findById(@Param('id') id: string): Promise<IVoucher> {
@@ -56,7 +54,6 @@ export class VoucherController {
   }
 
   @Put(':id')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Voucher updated successfully')
   @Permissions('vouchers:update')
   async update(
@@ -67,8 +64,7 @@ export class VoucherController {
   }
 
   @Patch(':id/status')
-  @HttpCode(HttpStatus.OK)
-  @ResponseMessage('Voucher updated status successfully')
+  @ResponseMessage('Voucher status updated successfully')
   @Permissions('vouchers:update')
   async updateStatus(
     @Param('id') id: string,
@@ -78,7 +74,6 @@ export class VoucherController {
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Voucher deleted successfully')
   @Permissions('vouchers:delete')
   async delete(@Param('id') id: string): Promise<void> {

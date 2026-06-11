@@ -1,5 +1,5 @@
 import { defineEntity, InferEntity, p } from '@mikro-orm/core';
-import { PermissionRepository } from '../repositories/permission.repositoy';
+import { PermissionRepository } from '../repositories/permission.repository';
 import { v4 as uuidv4 } from 'uuid';
 import { Role } from '../../roles/entities/role.entity';
 

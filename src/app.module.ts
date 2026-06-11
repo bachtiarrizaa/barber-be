@@ -11,6 +11,7 @@ import { RoleModule } from './modules/roles/role.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { ProfileModule } from './modules/profiles/profiles.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ProfileModule } from './modules/profiles/profiles.module';
     ProductModule,
     TreatmentModule,
     VoucherModule,
+    PermissionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

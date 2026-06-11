@@ -8,11 +8,16 @@ import {
   PaginatedResult,
 } from '../../../common/utils/pagination.util';
 import { FilterTreatmentDto } from '../dtos/filter-treatment.dto';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UpdateTreatmentDto } from '../dtos/update-treatment.dto';
 import { UpdateTreatmentStatusDto } from '../dtos/update-treatment-status.dto';
 import { FileService } from '../../../common/services/file.service';
 
+@Injectable()
 export class TreatmentService {
   constructor(
     @InjectRepository(Treatment)

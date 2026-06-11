@@ -3,14 +3,20 @@ import { IVoucher, Voucher } from '../entities/voucher.entity';
 import { VoucherRepository } from '../repositories/voucher.repository';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { CreateVoucherDto } from '../dtos/create-voucher.dto';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   paginate,
   PaginatedResult,
 } from '../../../common/utils/pagination.util';
 import { FilterVoucherDto } from '../dtos/filter-voucher.dto';
 import { UpdateVoucherDto } from '../dtos/update-voucher.dto';
+import { UpdateVoucherStatusDto } from '../dtos/update-voucher-status.dto';
 
+@Injectable()
 export class VoucherService {
   constructor(
     @InjectRepository(Voucher)
@@ -19,24 +25,15 @@ export class VoucherService {
   ) {}
 
   async create(createVoucherDto: CreateVoucherDto): Promise<IVoucher> {
-    const existVoucher = await this.voucherRepository.findOne({
-      name: createVoucherDto.name,
-    });
+    const existVoucher = await this.voucherRepository.findByName(
+      createVoucherDto.name,
+    );
     if (existVoucher) {
       throw new ConflictException('Voucher with this name already exist');
     }
 
-    const voucherData = {
-      name: createVoucherDto.name,
-      description: createVoucherDto.description ?? null,
-      pointsRequired: createVoucherDto.pointsRequired,
-      type: createVoucherDto.type,
-      value: createVoucherDto.value,
-      isActive: createVoucherDto.isActive ?? true,
-    };
-
-    const voucher = this.voucherRepository.create(voucherData);
-    await this.em.persist(voucher).flush();
+    const voucher = this.voucherRepository.create(createVoucherDto);
+    await this.em.flush();
     return voucher;
   }
 
@@ -45,7 +42,7 @@ export class VoucherService {
   ): Promise<PaginatedResult<IVoucher>> {
     const { isActive, ...paginationQuery } = filterDto;
 
-    const filters: Partial<{ isActive }> = {};
+    const filters: Partial<{ isActive: boolean }> = {};
     if (isActive !== undefined) {
       filters.isActive = isActive;
     }
@@ -53,13 +50,15 @@ export class VoucherService {
     return paginate<IVoucher>(this.voucherRepository, paginationQuery, {
       searchFields: ['name'],
       filters,
-      orderBy: { createdAt: 'Desc' },
+      orderBy: { createdAt: 'DESC' },
     });
   }
 
   async findById(id: string): Promise<IVoucher> {
     const voucher = await this.voucherRepository.findOne({ id });
-    if (!voucher) throw new NotFoundException('Voucher not found');
+    if (!voucher) {
+      throw new NotFoundException('Voucher not found');
+    }
     return voucher;
   }
 
@@ -70,44 +69,27 @@ export class VoucherService {
     const voucher = await this.findById(id);
 
     if (updateVoucherDto.name && updateVoucherDto.name !== voucher.name) {
-      const existing = await this.voucherRepository.findOne({
-        name: updateVoucherDto.name,
-      });
+      const existing = await this.voucherRepository.findByName(
+        updateVoucherDto.name,
+      );
       if (existing) {
         throw new ConflictException('Voucher with this name already exists');
       }
     }
 
-    const voucherData = {
-      ...(updateVoucherDto.name && { name: updateVoucherDto.name }),
-      ...(updateVoucherDto.description && {
-        description: updateVoucherDto.description,
-      }),
-      ...(updateVoucherDto.pointsRequired && {
-        pointsRequired: updateVoucherDto.pointsRequired,
-      }),
-      ...(updateVoucherDto.type && { type: updateVoucherDto.type }),
-      ...(updateVoucherDto.value && { value: updateVoucherDto.value }),
-    };
-
-    this.em.assign(voucher, voucherData);
+    this.em.assign(voucher, updateVoucherDto);
     await this.em.flush();
     return voucher;
   }
 
   async updateStatus(
     id: string,
-    updateVoucherStatusDto: UpdateVoucherDto,
+    updateVoucherStatusDto: UpdateVoucherStatusDto,
   ): Promise<IVoucher> {
     const voucher = await this.findById(id);
-
-    const voucherData = {
-      ...(updateVoucherStatusDto.isActive !== undefined && {
-        isActive: updateVoucherStatusDto.isActive,
-      }),
-    };
-
-    this.em.assign(voucher, voucherData);
+    this.em.assign(voucher, {
+      isActive: updateVoucherStatusDto.isActive,
+    });
     await this.em.flush();
     return voucher;
   }

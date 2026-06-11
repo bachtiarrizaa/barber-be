@@ -20,14 +20,12 @@ export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
   @Get('me')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Profile me retrieved successfully')
   async profile(@CurrentUser() user: JwtPayload) {
     return this.profileService.getProfileMe(user.sub);
   }
 
   @Patch('me')
-  @HttpCode(HttpStatus.OK)
   @ResponseMessage('Profile updated successfully')
   async updateProfile(
     @CurrentUser() user: JwtPayload,

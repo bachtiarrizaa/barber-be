@@ -2,8 +2,12 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { IRole, Role } from '../entities/role.entity';
 import { RoleRepository } from '../repositories/role.repository';
 import { EntityManager } from '@mikro-orm/postgresql';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateRoleDto } from '../dtos/create-role.dto';
-import { ConflictException, NotFoundException } from '@nestjs/common';
 import { FilterRoleDto } from '../dtos/filter-role.dto';
 import {
   paginate,
@@ -11,6 +15,7 @@ import {
 } from '../../../common/utils/pagination.util';
 import { UpdateRoleDto } from '../dtos/update-role.dto';
 
+@Injectable()
 export class RoleService {
   constructor(
     @InjectRepository(Role)
@@ -19,18 +24,12 @@ export class RoleService {
   ) {}
 
   async create(createRoleDto: CreateRoleDto): Promise<IRole> {
-    const existRole = await this.roleRepository.findOne({
-      name: createRoleDto.name,
-    });
+    const existRole = await this.roleRepository.findByName(createRoleDto.name);
     if (existRole) {
       throw new ConflictException('Role with this name already exist');
     }
 
-    const roleData = {
-      name: createRoleDto.name,
-    };
-
-    const role = this.roleRepository.create(roleData);
+    const role = this.roleRepository.create(createRoleDto);
     await this.em.flush();
     return role;
   }
@@ -40,7 +39,7 @@ export class RoleService {
 
     return paginate<IRole>(this.roleRepository, paginationQuery, {
       searchFields: ['name'],
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'DESC' },
     });
   }
 
@@ -56,19 +55,15 @@ export class RoleService {
     const role = await this.findById(id);
 
     if (updateRoleDto && updateRoleDto.name !== role.name) {
-      const existRole = await this.roleRepository.findOne({
-        name: updateRoleDto.name,
-      });
+      const existRole = await this.roleRepository.findByName(
+        updateRoleDto.name,
+      );
       if (existRole) {
         throw new ConflictException('Role with this name already exist');
       }
     }
 
-    const roleData = {
-      ...(updateRoleDto.name && { name: updateRoleDto.name }),
-    };
-
-    this.em.assign(role, roleData);
+    this.em.assign(role, updateRoleDto);
     await this.em.flush();
     return role;
   }
