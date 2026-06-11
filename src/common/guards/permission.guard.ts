@@ -31,7 +31,10 @@ export class PermissionGuard implements CanActivate {
     if (!user) {
       throw new UnauthorizedException('Unauthorized access');
     }
-    const role = await this.em.findOne(
+
+    const forkedEm = this.em.fork();
+
+    const role = await forkedEm.findOne(
       Role,
       { name: user.role },
       { populate: ['permissions'] },
