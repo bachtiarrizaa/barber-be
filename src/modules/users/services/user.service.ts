@@ -12,10 +12,7 @@ import { EntityManager } from '@mikro-orm/postgresql';
 import { RoleService } from '../../roles/services/role.service';
 import * as bcrypt from 'bcrypt';
 import { FilterUserDto } from '../dtos/filter-user.dto';
-import {
-  paginate,
-  PaginatedResult,
-} from '../../../common/utils/pagination.util';
+import { PaginatedResult } from '../../../common/utils/pagination.util';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { UpdateUserStatusDto } from '../dtos/update-user-status.dto';
 
@@ -62,7 +59,7 @@ export class UserService {
       filters.isActive = isActive;
     }
 
-    return paginate<IUser>(this.userRepository, paginationQuery, {
+    return this.userRepository.findAllWithPaginated(paginationQuery, {
       searchFields: ['name', 'email'],
       filters,
       orderBy: { createdAt: 'DESC' },

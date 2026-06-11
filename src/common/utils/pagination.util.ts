@@ -23,7 +23,8 @@ export interface PaginateOptions<T extends object> {
   searchFields?: (keyof T)[];
   filters?: FilterQuery<T>;
   orderBy?: FindOptions<T>['orderBy'];
-  populate?: FindOptions<T>['populate'];
+  populate?: string[];
+  fields?: string[];
 }
 
 export async function paginate<T extends object>(
@@ -32,7 +33,13 @@ export async function paginate<T extends object>(
   options: PaginateOptions<T> = {},
 ): Promise<PaginatedResult<T>> {
   const { page, limit, search } = query;
-  const { searchFields = [], filters = {}, orderBy, populate } = options;
+  const {
+    searchFields = [],
+    filters = {},
+    orderBy,
+    populate,
+    fields,
+  } = options;
 
   const safePage = Math.max(1, page);
   const safeLimit = Math.min(Math.max(1, limit), MAX_LIMIT);
@@ -55,7 +62,8 @@ export async function paginate<T extends object>(
     offset,
     ...(orderBy ? { orderBy } : {}),
     ...(populate ? { populate } : {}),
-  };
+    ...(fields ? { fields } : {}),
+  } as FindOptions<T>;
 
   const [items, total] = await repository.findAndCount(
     where as Parameters<typeof repository.findAndCount>[0],
