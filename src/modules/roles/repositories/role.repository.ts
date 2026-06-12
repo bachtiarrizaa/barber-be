@@ -9,4 +9,8 @@ export class RoleRepository extends EntityRepository<IRole> {
   async findById(roleId: string): Promise<IRole | null> {
     return this.findOne({ id: roleId });
   }
+
+  async findByIdWithPermissions(roleId: string): Promise<IRole | null> {
+    return this.findOne({ id: roleId }, { populate: ['permissions'] as const });
+  }
 }

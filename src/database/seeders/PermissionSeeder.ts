@@ -147,6 +147,50 @@ const permissionGroups: PermissionGroup[] = [
       },
     ],
   },
+  {
+    name: 'Dashboard Menu',
+    children: [{ name: 'Lihat Dashboard', actionCode: 'dashboard:read' }],
+  },
+  {
+    name: 'Customers Menu',
+    children: [
+      { name: 'Lihat Customer', actionCode: 'customers:read' },
+      { name: 'Tambah Customer', actionCode: 'customers:create' },
+      { name: 'Edit Customer', actionCode: 'customers:update' },
+    ],
+  },
+  {
+    name: 'Transactions Menu',
+    children: [
+      { name: 'Lihat Transaksi', actionCode: 'transactions:read' },
+      { name: 'Buat Transaksi', actionCode: 'transactions:create' },
+      { name: 'Batalkan Transaksi', actionCode: 'transactions:cancel' },
+    ],
+  },
+  {
+    name: 'Attendance Menu',
+    children: [
+      { name: 'Lihat Absensi', actionCode: 'attendance:read' },
+      { name: 'Kelola Absensi', actionCode: 'attendance:manage' },
+    ],
+  },
+  {
+    name: 'Reports Menu',
+    children: [
+      { name: 'Lihat Laporan', actionCode: 'reports:read' },
+      { name: 'Export Laporan', actionCode: 'reports:export' },
+    ],
+  },
+  {
+    name: 'Settings Menu',
+    children: [{ name: 'Kelola Pengaturan', actionCode: 'settings:manage' }],
+  },
+  {
+    name: 'Permissions Menu',
+    children: [
+      { name: 'Kelola Permissions', actionCode: 'permissions:manage' },
+    ],
+  },
 ];
 
 export class PermissionSeeder extends Seeder {
