@@ -13,6 +13,7 @@ import {
   paginate,
   PaginatedResult,
 } from '../../../common/utils/pagination.util';
+import { UpdateCustomerDto } from '../dtos/update-customer.dto';
 
 @Injectable()
 export class CustomerService {
@@ -57,5 +58,30 @@ export class CustomerService {
       throw new NotFoundException('Customer not found');
     }
     return customer;
+  }
+
+  async update(
+    customerId: string,
+    updateCustomerDto: UpdateCustomerDto,
+  ): Promise<ICustomer> {
+    const customer = await this.findById(customerId);
+
+    if (updateCustomerDto.phone && updateCustomerDto.phone !== customer.phone) {
+      const existPhone = await this.customerRespository.findByPhone(
+        updateCustomerDto.phone,
+      );
+      if (existPhone) {
+        throw new ConflictException('Customer with this phone already exist');
+      }
+    }
+
+    this.em.assign(customer, updateCustomerDto);
+    await this.em.flush();
+    return customer;
+  }
+
+  async delete(customerId: string): Promise<void> {
+    const customer = await this.findById(customerId);
+    await this.em.remove(customer).flush();
   }
 }
