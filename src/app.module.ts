@@ -12,6 +12,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { ProfileModule } from './modules/profiles/profiles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
+import { CustomerModule } from './modules/customers/customers.module';
 
 @Module({
   imports: [
@@ -20,9 +21,10 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
     }),
     MikroOrmModule.forRoot(mikroOrmConfig),
     RoleModule,
-    UsersModule,
-    ProfileModule,
     AuthModule,
+    UsersModule,
+    CustomerModule,
+    ProfileModule,
     ProductModule,
     TreatmentModule,
     VoucherModule,
