@@ -6,13 +6,20 @@ import { Role } from '../../modules/roles/entities/role.entity';
 const rolePermissionMap: Record<string, string[] | 'all'> = {
   admin: 'all',
   cashier: [
-    'users:read',
-    'roles:read',
+    'dashboard:read',
     'products:read',
     'treatments:read',
     'vouchers:read',
+    'customers:read',
+    'customers:create',
+    'customers:update',
+    'transactions:read',
+    'transactions:create',
+    'transactions:cancel',
+    'attendance:read',
+    'attendance:manage',
   ],
-  barber: ['products:read', 'treatments:read', 'vouchers:read'],
+  barber: ['transactions:read', 'attendance:read', 'attendance:manage'],
 };
 
 export class RolePermissionSeeder extends Seeder {

@@ -3,9 +3,10 @@ import { Module } from '@nestjs/common';
 import { Role } from './entities/role.entity';
 import { RoleController } from './controllers/role.controller';
 import { RoleService } from './services/role.service';
+import { Permission } from '../permissions/entities/permission.entity';
 
 @Module({
-  imports: [MikroOrmModule.forFeature([Role])],
+  imports: [MikroOrmModule.forFeature([Role, Permission])],
   controllers: [RoleController],
   providers: [RoleService],
   exports: [RoleService],

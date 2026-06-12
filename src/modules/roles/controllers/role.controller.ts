@@ -21,6 +21,8 @@ import { UpdateRoleDto } from '../dtos/update-role.dto';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { PermissionGuard } from '../../../common/guards/permission.guard';
 import { Permissions } from '../../../common/decorators/permission.decorator';
+import { IPermission } from '../../permissions/entities/permission.entity';
+import { AssignPermissionDto } from '../dtos/assign-permission.dto';
 
 @Controller('roles')
 @UseGuards(JwtAuthGuard, PermissionGuard)
@@ -66,5 +68,32 @@ export class RoleController {
   @Permissions('roles:delete')
   async delete(@Param('id') id: string) {
     return this.roleService.delete(id);
+  }
+
+  @Get(':id/permissions')
+  @ResponseMessage('Role permission retrieved successfully')
+  @Permissions('permissions:manage')
+  async getRolePermissions(@Param('id') id: string): Promise<IPermission[]> {
+    return this.roleService.getRolePermissions(id);
+  }
+
+  @Post(':id/permissions')
+  @ResponseMessage('Permission assigned successfully')
+  @Permissions('permissions:manage')
+  async assignPermission(
+    @Param('id') id: string,
+    @Body() assignPermissionDto: AssignPermissionDto,
+  ): Promise<void> {
+    return this.roleService.assignPermission(id, assignPermissionDto);
+  }
+
+  @Delete(':id/permissions/:permissionId')
+  @ResponseMessage('Permission unassigned successfully')
+  @Permissions('permissions:manage')
+  async unassignPermission(
+    @Param('id') id: string,
+    @Param('permissionId') permissionId: string,
+  ): Promise<void> {
+    return this.roleService.unassignPermission(id, permissionId);
   }
 }
