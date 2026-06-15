@@ -15,6 +15,7 @@ import { Permissions } from '../../../common/decorators/permission.decorator';
 import { FilterCustomerDto } from '../dtos/filter-customer.dto';
 import { PaginatedResult } from '../../../common/utils/pagination.util';
 import { UpdateCustomerDto } from '../dtos/update-customer.dto';
+import { RedeemVoucherDto } from '../../vouchers/dtos/reedem-voucher.dto';
 
 @Controller('customers')
 export class CustomerController {
@@ -60,5 +61,29 @@ export class CustomerController {
   @Permissions('customers:delete')
   async delete(@Param('id') customerId: string): Promise<void> {
     return this.customerService.delete(customerId);
+  }
+
+  @Get(':id/point-logs')
+  @ResponseMessage('Customer point logs retrieved successfully')
+  @Permissions('customers:read')
+  async getPointLogs(@Param('id') customerId: string) {
+    return this.customerService.getPointLogs(customerId);
+  }
+
+  @Get(':id/vouchers')
+  @ResponseMessage('Customer vouchers retrieved successfully')
+  @Permissions('customers:read')
+  async getVouchersCustomer(@Param('id') customerId: string) {
+    return this.customerService.getVouchersCustomer(customerId);
+  }
+
+  @Post(':id/redeem-voucher')
+  @ResponseMessage('Voucher redeemed successfully')
+  @Permissions('customers:update')
+  async redeemVoucher(
+    @Param('id') customerId: string,
+    @Body() reedemVoucherDto: RedeemVoucherDto,
+  ) {
+    return this.customerService.redeemVoucher(customerId, reedemVoucherDto);
   }
 }

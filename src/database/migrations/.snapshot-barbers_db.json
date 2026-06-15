@@ -371,6 +371,188 @@
       "comment": null
     },
     {
+      "name": "point_logs",
+      "schema": "public",
+      "columns": {
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "customer_id": {
+          "name": "customer_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "text"
+        },
+        "point_changes": {
+          "name": "point_changes",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "integer"
+        },
+        "transaction_id": {
+          "name": "transaction_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [
+            "earn",
+            "redeem",
+            "expired",
+            "adjust"
+          ],
+          "mappedType": "enum"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        }
+      },
+      "indexes": [
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "keyName": "point_logs_pkey",
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [
+        {
+          "name": "point_logs_type_check",
+          "expression": "\"type\" in ('earn', 'redeem', 'expired', 'adjust')",
+          "definition": "check (\"type\" in ('earn', 'redeem', 'expired', 'adjust'))",
+          "columnName": "type"
+        }
+      ],
+      "triggers": [],
+      "foreignKeys": {
+        "point_logs_customer_id_foreign": {
+          "columnNames": [
+            "customer_id"
+          ],
+          "constraintName": "point_logs_customer_id_foreign",
+          "localTableName": "public.point_logs",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.customers"
+        }
+      },
+      "comment": null
+    },
+    {
       "name": "products",
       "schema": "public",
       "columns": {
@@ -1107,6 +1289,204 @@
             "id"
           ],
           "referencedTableName": "public.roles"
+        }
+      },
+      "comment": null
+    },
+    {
+      "name": "voucher_redemptions",
+      "schema": "public",
+      "columns": {
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "customer_id": {
+          "name": "customer_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "expired_at": {
+          "name": "expired_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "is_used": {
+          "name": "is_used",
+          "type": "boolean",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": "false",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "boolean"
+        },
+        "transaction_id": {
+          "name": "transaction_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "used_at": {
+          "name": "used_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "voucher_id": {
+          "name": "voucher_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        }
+      },
+      "indexes": [
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "keyName": "voucher_redemptions_pkey",
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "triggers": [],
+      "foreignKeys": {
+        "voucher_redemptions_customer_id_foreign": {
+          "columnNames": [
+            "customer_id"
+          ],
+          "constraintName": "voucher_redemptions_customer_id_foreign",
+          "localTableName": "public.voucher_redemptions",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.customers"
+        },
+        "voucher_redemptions_voucher_id_foreign": {
+          "columnNames": [
+            "voucher_id"
+          ],
+          "constraintName": "voucher_redemptions_voucher_id_foreign",
+          "localTableName": "public.voucher_redemptions",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.vouchers"
         }
       },
       "comment": null
