@@ -1,5 +1,6 @@
 import { InjectRepository } from '@mikro-orm/nestjs';
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -14,12 +15,28 @@ import {
   PaginatedResult,
 } from '../../../common/utils/pagination.util';
 import { UpdateCustomerDto } from '../dtos/update-customer.dto';
+import { IPointLog, PointLog } from '../entities/point-log.entity';
+import { PointLogRepository } from '../repositories/point-log.repository';
+import {
+  IVoucherRedemption,
+  VoucherRedemption,
+} from '../../vouchers/entities/voucher-redemption.entity';
+import { VoucherRedemptionRepository } from '../../vouchers/repositories/voucher-redemption.repository';
+import { RedeemVoucherDto } from '../../vouchers/dtos/reedem-voucher.dto';
+import { Voucher } from '../../vouchers/entities/voucher.entity';
+import { VoucherRepository } from '../../vouchers/repositories/voucher.repository';
 
 @Injectable()
 export class CustomerService {
   constructor(
+    @InjectRepository(PointLog)
+    private readonly pointLogRepository: PointLogRepository,
+    @InjectRepository(VoucherRedemption)
+    private readonly voucherRedemptionRepository: VoucherRedemptionRepository,
     @InjectRepository(Customer)
     private readonly customerRespository: CustomerRepository,
+    @InjectRepository(Voucher)
+    private readonly voucherRepository: VoucherRepository,
     private readonly em: EntityManager,
   ) {}
 
@@ -83,5 +100,72 @@ export class CustomerService {
   async delete(customerId: string): Promise<void> {
     const customer = await this.findById(customerId);
     await this.em.remove(customer).flush();
+  }
+
+  async getPointLogs(customerId: string): Promise<IPointLog[]> {
+    await this.findById(customerId);
+    return this.pointLogRepository.findByCustomer(customerId);
+  }
+
+  async getVouchersCustomer(customerId: string): Promise<IVoucherRedemption[]> {
+    await this.findById(customerId);
+    return this.voucherRedemptionRepository.findActiveByCustomer(customerId);
+  }
+
+  async redeemVoucher(
+    customerId: string,
+    reedemVoucherDto: RedeemVoucherDto,
+  ): Promise<IVoucherRedemption> {
+    const customer = await this.findById(customerId);
+
+    const voucher = await this.voucherRepository.findActiveVoucher(
+      reedemVoucherDto.voucherId,
+    );
+
+    if (!voucher) {
+      throw new NotFoundException('Voucher not found or inactive');
+    }
+
+    const existingRedemption =
+      await this.voucherRedemptionRepository.findUnusedVoucher(
+        customerId,
+        reedemVoucherDto.voucherId,
+      );
+
+    if (existingRedemption) {
+      throw new ConflictException(
+        'You have already redeemed this voucher and it is still unused.',
+      );
+    }
+    if (voucher.pointsRequired > customer.totalPoints) {
+      throw new BadRequestException(
+        `Insufficient points. Required: ${voucher.pointsRequired}, available: ${customer.totalPoints}`,
+      );
+    }
+
+    const expiryDays = 30;
+    const expiredAt = new Date();
+    expiredAt.setDate(expiredAt.getDate() + expiryDays);
+
+    customer.totalPoints -= voucher.pointsRequired;
+
+    this.pointLogRepository.create({
+      customer,
+      pointChanges: -voucher.pointsRequired,
+      type: 'redeem',
+      note: `Redeem voucher: ${voucher.name}`,
+      transactionId: null,
+    });
+
+    const redemption = this.voucherRedemptionRepository.create({
+      customer,
+      voucher,
+      isUsed: false,
+      expiredAt,
+      transactionId: null,
+    });
+
+    await this.em.flush();
+    return redemption;
   }
 }
