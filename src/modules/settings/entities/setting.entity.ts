@@ -11,8 +11,11 @@ export const Setting = defineEntity({
       .uuid()
       .primary()
       .onCreate(() => uuidv4()),
+    name: p.string(),
     key: p.string().unique(),
     value: p.string(),
+    description: p.string().nullable(),
+    isSystem: p.boolean().default(false),
     createdAt: p.datetime().onCreate(() => new Date()),
     updatedAt: p
       .datetime()

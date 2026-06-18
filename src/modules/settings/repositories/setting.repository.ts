@@ -9,4 +9,12 @@ export class SettingRepository extends EntityRepository<ISetting> {
   async findByKeys(keys: string[]): Promise<ISetting[]> {
     return this.find({ key: { $in: keys } });
   }
+
+  async findById(settingId: string): Promise<ISetting | null> {
+    return this.findOne({ id: settingId });
+  }
+
+  async findByName(name: string): Promise<ISetting | null> {
+    return this.findOne({ name });
+  }
 }
