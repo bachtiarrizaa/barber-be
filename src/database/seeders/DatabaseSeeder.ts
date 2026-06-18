@@ -4,6 +4,7 @@ import { RoleSeeder } from './RoleSeeder';
 import { UserSeeder } from './UserSeeder';
 import { PermissionSeeder } from './PermissionSeeder';
 import { RolePermissionSeeder } from './RolePermissionSeeder';
+import { SettingSeeder } from './SettingSeeder';
 
 export class DatabaseSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
@@ -12,6 +13,7 @@ export class DatabaseSeeder extends Seeder {
       PermissionSeeder,
       RolePermissionSeeder,
       UserSeeder,
+      SettingSeeder,
     ]);
   }
 }
