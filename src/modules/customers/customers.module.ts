@@ -7,10 +7,12 @@ import { CustomerService } from './services/customer.service';
 import { PointLog } from './entities/point-log.entity';
 import { VoucherRedemption } from '../vouchers/entities/voucher-redemption.entity';
 import { Voucher } from '../vouchers/entities/voucher.entity';
+import { SettingModule } from '../settings/settings.module';
 
 @Module({
   imports: [
     MikroOrmModule.forFeature([Customer, PointLog, VoucherRedemption, Voucher]),
+    SettingModule,
   ],
   controllers: [CustomerController],
   providers: [CustomerService],
