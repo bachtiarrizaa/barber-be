@@ -183,7 +183,29 @@ const permissionGroups: PermissionGroup[] = [
   },
   {
     name: 'Settings Menu',
-    children: [{ name: 'Kelola Pengaturan', actionCode: 'settings:manage' }],
+    description: 'Akses menu manajemen pengaturan',
+    children: [
+      {
+        name: 'Lihat Pengaturan',
+        actionCode: 'settings:read',
+        description: 'Melihat daftar dan detail pengaturan',
+      },
+      {
+        name: 'Tambah Pengaturan',
+        actionCode: 'settings:create',
+        description: 'Menambahkan pengaturan baru',
+      },
+      {
+        name: 'Edit Pengaturan',
+        actionCode: 'settings:update',
+        description: 'Mengubah data pengaturan',
+      },
+      {
+        name: 'Hapus Pengaturan',
+        actionCode: 'settings:delete',
+        description: 'Menghapus pengaturan',
+      },
+    ],
   },
   {
     name: 'Permissions Menu',
