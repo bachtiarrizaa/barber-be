@@ -25,6 +25,7 @@ import { VoucherRedemptionRepository } from '../../vouchers/repositories/voucher
 import { RedeemVoucherDto } from '../../vouchers/dtos/reedem-voucher.dto';
 import { Voucher } from '../../vouchers/entities/voucher.entity';
 import { VoucherRepository } from '../../vouchers/repositories/voucher.repository';
+import { SettingService } from '../../settings/services/setting.service';
 
 @Injectable()
 export class CustomerService {
@@ -37,6 +38,7 @@ export class CustomerService {
     private readonly customerRespository: CustomerRepository,
     @InjectRepository(Voucher)
     private readonly voucherRepository: VoucherRepository,
+    private readonly settingService: SettingService,
     private readonly em: EntityManager,
   ) {}
 
@@ -143,29 +145,36 @@ export class CustomerService {
       );
     }
 
-    const expiryDays = 30;
+    // const expiryDays = 30;
+    const expiryDays = parseInt(
+      await this.settingService.getValue('voucher_expiry_days'),
+      10,
+    );
     const expiredAt = new Date();
     expiredAt.setDate(expiredAt.getDate() + expiryDays);
 
-    customer.totalPoints -= voucher.pointsRequired;
+    let redemption!: IVoucherRedemption;
 
-    this.pointLogRepository.create({
-      customer,
-      pointChanges: -voucher.pointsRequired,
-      type: 'redeem',
-      note: `Redeem voucher: ${voucher.name}`,
-      transactionId: null,
+    await this.em.transactional((tem) => {
+      customer.totalPoints -= voucher.pointsRequired;
+
+      tem.create(PointLog, {
+        customer,
+        pointChanges: -voucher.pointsRequired,
+        type: 'redeem',
+        note: `Redeem voucher: ${voucher.name}`,
+        transactionId: null,
+      });
+
+      redemption = tem.create(VoucherRedemption, {
+        customer,
+        voucher,
+        isUsed: false,
+        expiredAt,
+        transactionId: null,
+      });
     });
 
-    const redemption = this.voucherRedemptionRepository.create({
-      customer,
-      voucher,
-      isUsed: false,
-      expiredAt,
-      transactionId: null,
-    });
-
-    await this.em.flush();
     return redemption;
   }
 }
