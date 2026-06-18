@@ -13,6 +13,7 @@ import { UsersModule } from './modules/users/users.module';
 import { ProfileModule } from './modules/profiles/profiles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { CustomerModule } from './modules/customers/customers.module';
+import { SettingModule } from './modules/settings/settings.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { CustomerModule } from './modules/customers/customers.module';
     TreatmentModule,
     VoucherModule,
     PermissionsModule,
+    SettingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
