@@ -15,7 +15,6 @@ export const Setting = defineEntity({
     key: p.string().unique(),
     value: p.string(),
     description: p.string().nullable(),
-    isSystem: p.boolean().default(false),
     createdAt: p.datetime().onCreate(() => new Date()),
     updatedAt: p
       .datetime()

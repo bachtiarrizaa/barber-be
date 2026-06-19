@@ -13,8 +13,4 @@ export class SettingRepository extends EntityRepository<ISetting> {
   async findById(settingId: string): Promise<ISetting | null> {
     return this.findOne({ id: settingId });
   }
-
-  async findByName(name: string): Promise<ISetting | null> {
-    return this.findOne({ name });
-  }
 }
