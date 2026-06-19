@@ -548,6 +548,18 @@
             "id"
           ],
           "referencedTableName": "public.customers"
+        },
+        "point_logs_transaction_id_foreign": {
+          "columnNames": [
+            "transaction_id"
+          ],
+          "constraintName": "point_logs_transaction_id_foreign",
+          "localTableName": "public.point_logs",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.transactions",
+          "deleteRule": "set null"
         }
       },
       "comment": null
@@ -2245,6 +2257,18 @@
             "id"
           ],
           "referencedTableName": "public.customers"
+        },
+        "voucher_redemptions_transaction_id_foreign": {
+          "columnNames": [
+            "transaction_id"
+          ],
+          "constraintName": "voucher_redemptions_transaction_id_foreign",
+          "localTableName": "public.voucher_redemptions",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.transactions",
+          "deleteRule": "set null"
         },
         "voucher_redemptions_voucher_id_foreign": {
           "columnNames": [
