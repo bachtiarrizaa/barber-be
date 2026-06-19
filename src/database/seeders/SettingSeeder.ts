@@ -4,81 +4,70 @@ import { Setting } from '../../modules/settings/entities/setting.entity';
 
 const defaultSettings = [
   {
-    name: 'Points Amount Per Unit',
     key: 'points_amount_per_unit',
+    name: 'Poin Amount Per Unit',
     value: '10000',
-    description: 'Nominal rupiah per 1 poin',
-    isSystem: true,
+    description: 'IDR per 1 point earned',
   },
   {
-    name: 'Points Unit Value',
     key: 'points_unit_value',
+    name: 'Poin Unit Value',
     value: '1',
-    description: 'Jumlah poin yang didapat per unit',
-    isSystem: true,
+    description: 'Points earned per unit amount',
   },
   {
-    name: 'Voucher Expiry Days',
     key: 'voucher_expiry_days',
+    name: 'Voucher Expiry Days',
     value: '30',
-    description: 'Masa berlaku voucher dalam hari',
-    isSystem: true,
+    description: 'Days until voucher redemption expires',
   },
   {
-    name: 'Points Expiry Inactive Months',
     key: 'points_expiry_inactive_months',
+    name: 'Poin Expiry Inactive Months',
     value: '6',
-    description: 'Bulan tidak aktif sebelum poin expired',
-    isSystem: true,
+    description: 'Months of inactivity before countdown starts',
   },
   {
-    name: 'Points Expiry Countdown Months',
     key: 'points_expiry_countdown_months',
+    name: 'Poin Expiry Countdown Months',
     value: '3',
-    description: 'Bulan countdown sebelum poin expired',
-    isSystem: true,
+    description: 'Months of countdown before points expire',
   },
   {
-    name: 'Min Transaction For Points',
     key: 'min_transaction_for_points',
+    name: 'Minimum Transaction For Points',
     value: '0',
-    description: 'Minimal transaksi untuk mendapatkan poin',
-    isSystem: true,
+    description: 'Minimum total IDR to earn points',
   },
   {
-    name: 'WA Notification Enabled',
     key: 'wa_notification_enabled',
+    name: 'WA Notification Enabled',
     value: 'true',
-    description: 'Aktifkan notifikasi WhatsApp',
-    isSystem: true,
+    description: 'Global toggle for WhatsApp notifications',
   },
   {
-    name: 'Report Timezone',
     key: 'report_timezone',
+    name: 'Report Timezone',
     value: 'Asia/Jakarta',
-    description: 'Timezone untuk laporan',
-    isSystem: true,
+    description: 'Timezone for reports and cron jobs',
   },
   {
-    name: 'Shop Name',
     key: 'shop_name',
+    name: 'Shop Name',
     value: 'My Barbershop',
-    description: 'Nama toko barbershop',
-    isSystem: true,
+    description: 'Used in WA templates and report headers',
   },
   {
-    name: 'Shop Phone',
     key: 'shop_phone',
-    value: '',
-    description: 'Nomor telepon toko',
-    isSystem: true,
+    name: 'Shop Phone',
+    value: '628983162389',
+    description: 'Optional footer in WA notifications',
   },
   {
-    name: 'Shop Address',
     key: 'shop_address',
+    name: 'Shop Address',
     value: '',
-    description: 'Alamat toko barbershop',
-    isSystem: true,
+    description: 'Optional shop address',
   },
 ];
 
@@ -88,13 +77,6 @@ export class SettingSeeder extends Seeder {
       const exists = await em.findOne(Setting, { key: s.key });
       if (!exists) {
         em.create(Setting, s);
-      } else {
-        // Update name, description, and isSystem for existing entries
-        em.assign(exists, {
-          name: s.name,
-          description: s.description,
-          isSystem: s.isSystem,
-        });
       }
     }
     await em.flush();

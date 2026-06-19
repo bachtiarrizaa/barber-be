@@ -1,21 +1,14 @@
 import { InjectRepository } from '@mikro-orm/nestjs';
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Setting, ISetting } from '../entities/setting.entity';
 import { SettingRepository } from '../repositories/setting.repository';
 import { EntityManager } from '@mikro-orm/postgresql';
-import { CreateSettingDto } from '../dtos/create-setting.dto';
 import { UpdateSettingDto } from '../dtos/update-setting.dto';
-import { toSnakeCase } from '../../../common/utils/slug.util';
-import { FilterSettingDto } from '../dtos/filter-setting.dto';
 import {
   paginate,
   PaginatedResult,
 } from '../../../common/utils/pagination.util';
+import { FilterSettingDto } from '../dtos/filter-settings.dto';
 
 @Injectable()
 export class SettingService {
@@ -24,33 +17,6 @@ export class SettingService {
     private readonly settingRepository: SettingRepository,
     private readonly em: EntityManager,
   ) {}
-
-  async create(createSettingDto: CreateSettingDto): Promise<ISetting> {
-    const existName = await this.settingRepository.findByName(
-      createSettingDto.name,
-    );
-    if (existName) {
-      throw new ConflictException('Setting with this name already exists');
-    }
-
-    const key = toSnakeCase(createSettingDto.name);
-
-    const existKey = await this.settingRepository.findByKey(key);
-    if (existKey) {
-      throw new ConflictException(
-        `Setting with generated key '${key}' already exists`,
-      );
-    }
-
-    const setting = this.settingRepository.create({
-      ...createSettingDto,
-      key,
-      isSystem: false,
-    });
-
-    await this.em.flush();
-    return setting;
-  }
 
   async findAll(
     filterDto: FilterSettingDto,
@@ -88,33 +54,18 @@ export class SettingService {
     settingId: string,
     updateSettingDto: UpdateSettingDto,
   ): Promise<ISetting> {
-    const setting = await this.settingRepository.findById(settingId);
-    if (!setting) {
-      throw new NotFoundException('Setting not found');
+    const setting = await this.findById(settingId);
+
+    const updateData: Partial<ISetting> = {};
+    if (updateSettingDto.value !== undefined) {
+      updateData.value = updateSettingDto.value;
+    }
+    if (updateSettingDto.description !== undefined) {
+      updateData.description = updateSettingDto.description;
     }
 
-    this.em.assign(setting, updateSettingDto);
+    this.em.assign(setting, updateData);
     await this.em.flush();
     return setting;
-  }
-
-  async update(key: string, value: string): Promise<ISetting> {
-    const setting = await this.settingRepository.findByKey(key);
-    if (!setting) {
-      throw new NotFoundException(`Setting '${key}' not found`);
-    }
-    this.em.assign(setting, { value });
-    await this.em.flush();
-    return setting;
-  }
-
-  async delete(id: string): Promise<void> {
-    const setting = await this.findById(id);
-
-    if (setting.isSystem) {
-      throw new ForbiddenException('System settings cannot be deleted');
-    }
-
-    await this.em.remove(setting).flush();
   }
 }

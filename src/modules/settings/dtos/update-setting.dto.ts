@@ -5,7 +5,7 @@ export class UpdateSettingDto {
   @IsString()
   value!: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   description?: string;
 }
