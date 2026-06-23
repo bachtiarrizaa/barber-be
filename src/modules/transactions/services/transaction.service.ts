@@ -21,7 +21,7 @@ import {
 import { ItemType } from '../enums/item-type.enum';
 import { Product } from '../../products/entities/product.entity';
 import { ProductRepository } from '../../products/repositories/product.repository';
-import { StockLog } from '../../products/entities/stock-log.entity';
+import { StockLog } from '../../stock/entities/stock-log.entity';
 import {
   IVoucherRedemption,
   VoucherRedemption,
@@ -322,6 +322,7 @@ export class TransactionService {
               qtyChange: -item.quantity,
               type: 'transaction',
               referenceId: transaction.id,
+              note: null,
             });
           }
         }
