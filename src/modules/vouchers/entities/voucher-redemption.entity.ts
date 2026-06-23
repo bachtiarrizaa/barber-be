@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Customer } from '../../customers/entities/customer.entity';
 import { Voucher } from './voucher.entity';
 import { VoucherRedemptionRepository } from '../repositories/voucher-redemption.repository';
+import { Transaction } from '../../transactions/entities/transaction.entity';
 
 export const VoucherRedemption = defineEntity({
   name: 'VoucherRedemption',
@@ -15,7 +16,7 @@ export const VoucherRedemption = defineEntity({
       .onCreate(() => uuidv4()),
     customer: () => p.manyToOne(Customer),
     voucher: () => p.manyToOne(Voucher),
-    transactionId: p.uuid().nullable(),
+    transaction: () => p.manyToOne(Transaction).nullable(),
     isUsed: p.boolean().default(false),
     usedAt: p.datetime().nullable(),
     expiredAt: p.datetime(),

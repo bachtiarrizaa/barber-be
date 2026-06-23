@@ -14,6 +14,7 @@ import { ProfileModule } from './modules/profiles/profiles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { CustomerModule } from './modules/customers/customers.module';
 import { SettingModule } from './modules/settings/settings.module';
+import { TransactionsModule } from './modules/transactions/transactions.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { SettingModule } from './modules/settings/settings.module';
     VoucherModule,
     PermissionsModule,
     SettingModule,
+    TransactionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

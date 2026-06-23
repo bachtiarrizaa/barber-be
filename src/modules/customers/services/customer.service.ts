@@ -163,7 +163,6 @@ export class CustomerService {
         pointChanges: -voucher.pointsRequired,
         type: 'redeem',
         note: `Redeem voucher: ${voucher.name}`,
-        transactionId: null,
       });
 
       redemption = tem.create(VoucherRedemption, {
@@ -171,7 +170,6 @@ export class CustomerService {
         voucher,
         isUsed: false,
         expiredAt,
-        transactionId: null,
       });
     });
 

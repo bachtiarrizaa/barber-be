@@ -548,6 +548,18 @@
             "id"
           ],
           "referencedTableName": "public.customers"
+        },
+        "point_logs_transaction_id_foreign": {
+          "columnNames": [
+            "transaction_id"
+          ],
+          "constraintName": "point_logs_transaction_id_foreign",
+          "localTableName": "public.point_logs",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.transactions",
+          "deleteRule": "set null"
         }
       },
       "comment": null
@@ -1073,6 +1085,142 @@
       "comment": null
     },
     {
+      "name": "stock_logs",
+      "schema": "public",
+      "columns": {
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "qty_change": {
+          "name": "qty_change",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "integer"
+        },
+        "reference_id": {
+          "name": "reference_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 255,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "string"
+        }
+      },
+      "indexes": [
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "keyName": "stock_logs_pkey",
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "triggers": [],
+      "foreignKeys": {
+        "stock_logs_product_id_foreign": {
+          "columnNames": [
+            "product_id"
+          ],
+          "constraintName": "stock_logs_product_id_foreign",
+          "localTableName": "public.stock_logs",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.products"
+        }
+      },
+      "comment": null
+    },
+    {
       "name": "transaction_items",
       "schema": "public",
       "columns": {
@@ -1146,20 +1294,23 @@
         },
         "item_type": {
           "name": "item_type",
-          "type": "varchar(255)",
+          "type": "text",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
           "unique": false,
-          "length": 255,
+          "length": null,
           "precision": null,
           "scale": null,
           "default": null,
           "comment": null,
           "collation": null,
-          "enumItems": [],
-          "mappedType": "string"
+          "enumItems": [
+            "treatment",
+            "product"
+          ],
+          "mappedType": "enum"
         },
         "price": {
           "name": "price",
@@ -1178,8 +1329,8 @@
           "enumItems": [],
           "mappedType": "decimal"
         },
-        "qty": {
-          "name": "qty",
+        "quantity": {
+          "name": "quantity",
           "type": "int",
           "unsigned": false,
           "autoincrement": false,
@@ -1242,7 +1393,14 @@
           "unique": true
         }
       ],
-      "checks": [],
+      "checks": [
+        {
+          "name": "transaction_items_item_type_check",
+          "expression": "\"item_type\" in ('treatment', 'product')",
+          "definition": "check (\"item_type\" in ('treatment', 'product'))",
+          "columnName": "item_type"
+        }
+      ],
       "triggers": [],
       "foreignKeys": {
         "transaction_items_transaction_id_foreign": {
@@ -1263,6 +1421,23 @@
       "name": "transactions",
       "schema": "public",
       "columns": {
+        "amount_paid": {
+          "name": "amount_paid",
+          "type": "numeric(10,2)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": 10,
+          "scale": 2,
+          "default": "'0'",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "decimal"
+        },
         "barber_id": {
           "name": "barber_id",
           "type": "uuid",
@@ -1296,6 +1471,23 @@
           "collation": null,
           "enumItems": [],
           "mappedType": "uuid"
+        },
+        "change_amount": {
+          "name": "change_amount",
+          "type": "numeric(10,2)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": 10,
+          "scale": 2,
+          "default": "'0'",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "decimal"
         },
         "created_at": {
           "name": "created_at",
@@ -2245,6 +2437,18 @@
             "id"
           ],
           "referencedTableName": "public.customers"
+        },
+        "voucher_redemptions_transaction_id_foreign": {
+          "columnNames": [
+            "transaction_id"
+          ],
+          "constraintName": "voucher_redemptions_transaction_id_foreign",
+          "localTableName": "public.voucher_redemptions",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.transactions",
+          "deleteRule": "set null"
         },
         "voucher_redemptions_voucher_id_foreign": {
           "columnNames": [

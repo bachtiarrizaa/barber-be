@@ -30,6 +30,8 @@ export const Transaction = defineEntity({
     pointsEarned: p.integer().default(0),
     pointsUsed: p.integer().default(0),
     paymentMethod: p.string(),
+    amountPaid: p.decimal().columnType('decimal(10,2)').default('0'),
+    changeAmount: p.decimal().columnType('decimal(10,2)').default('0'),
     xenditInvoiceId: p.string().nullable(),
     paymentUrl: p.string().nullable(),
     paidAt: p.datetime().nullable(),

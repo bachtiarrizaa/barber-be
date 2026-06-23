@@ -2,6 +2,7 @@ import { defineEntity, InferEntity, p } from '@mikro-orm/core';
 import { v4 as uuidv4 } from 'uuid';
 import { Customer } from './customer.entity';
 import { PointLogRepository } from '../repositories/point-log.repository';
+import { Transaction } from '../../transactions/entities/transaction.entity';
 
 export const PointLog = defineEntity({
   name: 'PointLog',
@@ -13,7 +14,7 @@ export const PointLog = defineEntity({
       .primary()
       .onCreate(() => uuidv4()),
     customer: () => p.manyToOne(Customer),
-    transactionId: p.uuid().nullable(),
+    transaction: () => p.manyToOne(Transaction).nullable(),
     pointChanges: p.integer(),
     type: p.enum(['earn', 'redeem', 'expired', 'adjust']),
     note: p.text().nullable(),
