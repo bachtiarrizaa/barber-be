@@ -1,6 +1,6 @@
 import { defineEntity, InferEntity, p } from '@mikro-orm/core';
 import { v4 as uuidv4 } from 'uuid';
-import { Product } from './product.entity';
+import { Product } from '../../products/entities/product.entity';
 import { StockLogRepository } from '../repositories/stock-log.repository';
 
 export const StockLog = defineEntity({
@@ -16,6 +16,7 @@ export const StockLog = defineEntity({
     qtyChange: p.integer(),
     type: p.string(),
     referenceId: p.uuid().nullable(),
+    note: p.text().nullable(),
     createdAt: p.datetime().onCreate(() => new Date()),
   },
 });

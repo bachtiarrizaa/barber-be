@@ -15,6 +15,7 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
 import { CustomerModule } from './modules/customers/customers.module';
 import { SettingModule } from './modules/settings/settings.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
+import { StockModule } from './modules/stock/stocks.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { TransactionsModule } from './modules/transactions/transactions.module';
     PermissionsModule,
     SettingModule,
     TransactionsModule,
+    StockModule,
   ],
   controllers: [AppController],
   providers: [AppService],
