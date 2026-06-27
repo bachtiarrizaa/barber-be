@@ -11,6 +11,8 @@ import { Product } from '../products/entities/product.entity';
 import { VoucherRedemption } from '../vouchers/entities/voucher-redemption.entity';
 import { SettingModule } from '../settings/settings.module';
 import { CommonModule } from '../../common/common.module';
+import { PointLog } from '../customers/entities/point-log.entity';
+import { XenditModule } from '../xendit/xendit.module';
 
 @Module({
   imports: [
@@ -22,9 +24,11 @@ import { CommonModule } from '../../common/common.module';
       Customer,
       Product,
       VoucherRedemption,
+      PointLog,
     ]),
     SettingModule,
     CommonModule,
+    XenditModule,
   ],
   controllers: [TransactionController],
   providers: [TransactionService],

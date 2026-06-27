@@ -16,6 +16,7 @@ import { CustomerModule } from './modules/customers/customers.module';
 import { SettingModule } from './modules/settings/settings.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { StockModule } from './modules/stock/stocks.module';
+import { XenditModule } from './modules/xendit/xendit.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { StockModule } from './modules/stock/stocks.module';
     SettingModule,
     TransactionsModule,
     StockModule,
+    XenditModule,
   ],
   controllers: [AppController],
   providers: [AppService],

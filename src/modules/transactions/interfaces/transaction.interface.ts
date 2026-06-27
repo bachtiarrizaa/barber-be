@@ -29,5 +29,6 @@ export interface FinalizeTransactionParams {
   totalCommissionAmount: number;
   amountPaid: number;
   changeAmount: number;
+  paymentMethod: 'cash' | 'qris' | 'transfer';
   voucherRedemption: IVoucherRedemption | null;
 }
