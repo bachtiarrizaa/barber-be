@@ -35,6 +35,7 @@ import {
   paginate,
   PaginatedResult,
 } from '../../../common/utils/pagination.util';
+import { XenditService } from '../../xendit/services/xendit.service';
 
 @Injectable()
 export class TransactionService {
@@ -52,6 +53,7 @@ export class TransactionService {
     @InjectRepository(VoucherRedemption)
     private readonly voucherRedemptionRepository: VoucherRedemptionRepository,
     private readonly settingService: SettingService,
+    private readonly xenditService: XenditService,
     private readonly em: EntityManager,
   ) {}
 
@@ -111,7 +113,10 @@ export class TransactionService {
       }
 
       voucherRedemption = await this.voucherRedemptionRepository.findOne(
-        { id: createTransationDto.voucherRedemptionId, customer: customer.id },
+        {
+          id: createTransationDto.voucherRedemptionId,
+          customer: customer.id,
+        },
         { populate: ['voucher'] as const },
       );
 
@@ -133,7 +138,6 @@ export class TransactionService {
       }
     }
 
-    // Cap discount so total never goes negative
     discountAmount = Math.min(discountAmount, subtotal);
 
     const total = subtotal - discountAmount;
@@ -147,6 +151,24 @@ export class TransactionService {
     const totalCommissionAmount =
       serviceCommissionAmount + productCommissionAmount;
 
+    const baseParams = {
+      cashier,
+      barber,
+      customer,
+      transactionItems,
+      subtotal,
+      discountAmount,
+      total,
+      totalServiceAmount: totalTreatmentAmount,
+      totalProductAmount,
+      serviceCommissionRate,
+      productCommissionRate,
+      serviceCommissionAmount,
+      productCommissionAmount,
+      totalCommissionAmount,
+      voucherRedemption,
+    };
+
     if (createTransationDto.paymentMethod === 'cash') {
       const amountPaid = createTransationDto.amountPaid ?? 0;
       if (amountPaid < total) {
@@ -157,31 +179,98 @@ export class TransactionService {
       const changeAmount = amountPaid - total;
 
       return this.finalizeTransaction({
-        cashier,
-        barber,
-        customer,
-        transactionItems,
-        subtotal,
-        discountAmount,
-        total,
-        totalServiceAmount: totalTreatmentAmount,
-        totalProductAmount,
-        serviceCommissionRate,
-        productCommissionRate,
-        serviceCommissionAmount,
-        productCommissionAmount,
-        totalCommissionAmount,
+        ...baseParams,
+        paymentMethod: 'cash',
         amountPaid,
         changeAmount,
-        voucherRedemption,
       });
     }
 
-    // Non-cash path — Xendit invoice creation
-    // TODO: integrate Xendit module — placeholder for now
-    throw new BadRequestException(
-      'Non-cash payment is not yet supported. Xendit integration pending.',
-    );
+    // Non-cash path — create Xendit invoice, status = pending_payment
+    return this.createPendingTransaction({
+      ...baseParams,
+      paymentMethod: createTransationDto.paymentMethod,
+    });
+  }
+
+  private async createPendingTransaction(
+    params: Omit<FinalizeTransactionParams, 'amountPaid' | 'changeAmount'>,
+  ): Promise<ITransaction> {
+    const {
+      cashier,
+      barber,
+      customer,
+      transactionItems,
+      subtotal,
+      discountAmount,
+      total,
+      totalServiceAmount,
+      totalProductAmount,
+      serviceCommissionRate,
+      productCommissionRate,
+      serviceCommissionAmount,
+      productCommissionAmount,
+      totalCommissionAmount,
+      voucherRedemption,
+      paymentMethod,
+    } = params;
+
+    let transaction!: ITransaction;
+
+    await this.em.transactional((tem) => {
+      transaction = tem.create(Transaction, {
+        customer: customer ?? null,
+        cashier,
+        barber,
+        subtotal: subtotal.toFixed(2),
+        discountAmount: discountAmount.toFixed(2),
+        total: total.toFixed(2),
+        totalServiceAmount: totalServiceAmount.toFixed(2),
+        totalProductAmount: totalProductAmount.toFixed(2),
+        serviceCommissionRate: serviceCommissionRate.toFixed(2),
+        productCommissionRate: productCommissionRate.toFixed(2),
+        serviceCommissionAmount: serviceCommissionAmount.toFixed(2),
+        productCommissionAmount: productCommissionAmount.toFixed(2),
+        totalCommissionAmount: totalCommissionAmount.toFixed(2),
+        pointsEarned: 0,
+        pointsUsed: voucherRedemption
+          ? voucherRedemption.voucher.pointsRequired
+          : 0,
+        amountPaid: '0.00',
+        changeAmount: '0.00',
+        paymentMethod,
+        status: 'pending_payment',
+      });
+
+      for (const item of transactionItems) {
+        tem.create(TransactionItem, {
+          transaction,
+          itemType: item.itemType,
+          itemId: item.itemId,
+          itemName: item.itemName,
+          price: item.price,
+          quantity: item.quantity,
+          subtotal: item.subtotal,
+        });
+      }
+    });
+
+    // Create Xendit invoice AFTER transaction saved — so we have transaction.id as externalId
+    const invoice = await this.xenditService.createInvoice({
+      externalId: transaction.id,
+      amount: Math.round(total),
+      payerEmail: customer?.phone
+        ? `${customer.phone}@barbershop.local`
+        : undefined,
+      description: `Payment for transaction ${transaction.id}`,
+    });
+
+    transaction.xenditInvoiceId = invoice.invoiceId;
+    transaction.paymentUrl = invoice.invoiceUrl;
+    await this.em.flush();
+
+    await this.em.populate(transaction, ['items']);
+    return transaction;
   }
 
   private async transactionItem(
@@ -254,6 +343,7 @@ export class TransactionService {
       amountPaid,
       changeAmount,
       voucherRedemption,
+      paymentMethod,
     } = params;
 
     const pointsAmountPerUnit = parseInt(
@@ -297,7 +387,7 @@ export class TransactionService {
           : 0,
         amountPaid: amountPaid.toFixed(2),
         changeAmount: changeAmount.toFixed(2),
-        paymentMethod: 'cash',
+        paymentMethod,
         status: 'completed',
         paidAt: new Date(),
       });
@@ -355,6 +445,133 @@ export class TransactionService {
     // WA notification — outside transaction boundary, failure must not rollback
     // TODO: integrate Notifications module
 
+    await this.em.populate(transaction, ['items']);
+    return transaction;
+  }
+
+  /**
+   * Called from Xendit webhook when payment is confirmed.
+   * Re-finalizes a pending_payment transaction into completed.
+   */
+  async finalizeFromWebhook(xenditInvoiceId: string): Promise<ITransaction> {
+    const transaction = await this.transactionRepository.findOne(
+      { xenditInvoiceId },
+      { populate: ['items', 'customer', 'barber', 'cashier'] as const },
+    );
+
+    if (!transaction) {
+      throw new NotFoundException(
+        `Transaction with invoice ${xenditInvoiceId} not found`,
+      );
+    }
+
+    if (transaction.status !== 'pending_payment') {
+      // idempotent — already processed, do nothing
+      return transaction;
+    }
+
+    const pointsAmountPerUnit = parseInt(
+      await this.settingService.getValue('points_amount_per_unit'),
+      10,
+    );
+    const pointsUnitValue = parseInt(
+      await this.settingService.getValue('points_unit_value'),
+      10,
+    );
+    const minTransactionForPoints = parseInt(
+      await this.settingService.getValue('min_transaction_for_points'),
+      10,
+    );
+
+    const total = parseFloat(transaction.total);
+    let pointsEarned = 0;
+    if (transaction.customer && total >= minTransactionForPoints) {
+      pointsEarned = Math.floor(total / pointsAmountPerUnit) * pointsUnitValue;
+    }
+
+    await this.em.transactional(async (tem) => {
+      transaction.status = 'completed';
+      transaction.paidAt = new Date();
+      transaction.amountPaid = transaction.total;
+      transaction.changeAmount = '0.00';
+      transaction.pointsEarned = pointsEarned;
+
+      for (const item of transaction.items.getItems()) {
+        if (item.itemType === ItemType.PRODUCT && item.itemId) {
+          const product = await this.productRepository.findById(item.itemId);
+          if (product) {
+            product.stock -= item.quantity;
+            tem.create(StockLog, {
+              product,
+              qtyChange: -item.quantity,
+              type: 'transaction',
+              referenceId: transaction.id,
+              note: null,
+            });
+          }
+        }
+      }
+
+      if (transaction.customer) {
+        if (pointsEarned > 0) {
+          transaction.customer.totalPoints += pointsEarned;
+          tem.create(PointLog, {
+            customer: transaction.customer,
+            transaction,
+            pointChanges: pointsEarned,
+            type: 'earn',
+            note: 'Points earned from transaction',
+          });
+        }
+
+        transaction.customer.lastTransactionAt = new Date();
+        transaction.customer.pointsExpiryStartedAt = null;
+        transaction.customer.pointsExpiredAt = null;
+      }
+
+      // mark voucher redemption used, if any, by checking redemption linked to this transaction
+      const redemption = await this.voucherRedemptionRepository.findOne({
+        transaction: transaction.id,
+      });
+      if (redemption && !redemption.isUsed) {
+        redemption.isUsed = true;
+        redemption.usedAt = new Date();
+      }
+    });
+
+    // WA notification — outside transaction boundary
+    // TODO: integrate Notifications module
+
+    return transaction;
+  }
+
+  async expireFromWebhook(xenditInvoiceId: string): Promise<ITransaction> {
+    const transaction = await this.transactionRepository.findOne({
+      xenditInvoiceId,
+    });
+
+    if (!transaction) {
+      throw new NotFoundException(
+        `Transaction with invoice ${xenditInvoiceId} not found`,
+      );
+    }
+
+    if (transaction.status !== 'pending_payment') {
+      return transaction;
+    }
+
+    await this.em.transactional(async () => {
+      transaction.status = 'expired';
+
+      const redemption = await this.voucherRedemptionRepository.findOne({
+        transaction: transaction.id,
+      });
+      if (redemption) {
+        redemption.isUsed = false;
+        redemption.usedAt = null;
+      }
+    });
+
     return transaction;
   }
 
@@ -380,6 +597,38 @@ export class TransactionService {
     if (!transaction) {
       throw new NotFoundException('Transaction not found');
     }
+    return transaction;
+  }
+
+  async cancel(id: string): Promise<ITransaction> {
+    const transaction = await this.transactionRepository.findOne({ id });
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found');
+    }
+
+    if (transaction.status !== 'pending_payment') {
+      throw new BadRequestException(
+        'Only pending_payment transactions can be cancelled',
+      );
+    }
+
+    if (transaction.xenditInvoiceId) {
+      await this.xenditService.expireInvoice(transaction.xenditInvoiceId);
+    }
+
+    transaction.status = 'cancelled';
+
+    if (transaction.customer) {
+      const redemption = await this.voucherRedemptionRepository.findOne({
+        transaction: transaction.id,
+      });
+      if (redemption) {
+        redemption.isUsed = false;
+        redemption.usedAt = null;
+      }
+    }
+
+    await this.em.flush();
     return transaction;
   }
 }
