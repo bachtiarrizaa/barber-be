@@ -83,13 +83,15 @@ export class TransactionController {
     switch (body.status) {
       case 'PAID':
       case 'SETTLED':
-        await this.transactionService.finalizeFromWebhook(body.id);
+        await this.transactionService.finalizeFromWebhook(
+          body.id,
+          body.paid_amount,
+        );
         break;
       case 'EXPIRED':
         await this.transactionService.expireFromWebhook(body.id);
         break;
       default:
-        // unhandled status — log only, always return 2xx so Xendit doesn't retry
         break;
     }
 

@@ -1836,7 +1836,7 @@
           "autoincrement": false,
           "primary": false,
           "nullable": true,
-          "unique": false,
+          "unique": true,
           "length": 255,
           "precision": null,
           "scale": null,
@@ -1856,6 +1856,16 @@
           "constraint": true,
           "keyName": "transactions_pkey",
           "primary": true,
+          "unique": true
+        },
+        {
+          "columnNames": [
+            "xendit_invoice_id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "keyName": "transactions_xendit_invoice_id_unique",
+          "primary": false,
           "unique": true
         }
       ],
