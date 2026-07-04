@@ -2,6 +2,7 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { EntityManager } from '@mikro-orm/postgresql';
@@ -39,6 +40,8 @@ import { XenditService } from '../../xendit/services/xendit.service';
 
 @Injectable()
 export class TransactionService {
+  private readonly logger = new Logger(TransactionService.name);
+
   constructor(
     @InjectRepository(Transaction)
     private readonly transactionRepository: TransactionRepository,
@@ -307,6 +310,12 @@ export class TransactionService {
           );
         }
 
+        if (product.stock < item.quantity) {
+          throw new BadRequestException(
+            `Insufficient stock for product '${product.name}'. Available: ${product.stock}, requested: ${item.quantity}`,
+          );
+        }
+
         const subtotal = parseFloat(product.price) * item.quantity;
         transaction.push({
           itemType: ItemType.PRODUCT,
@@ -406,13 +415,21 @@ export class TransactionService {
         if (item.itemType === ItemType.PRODUCT) {
           const product = await this.productRepository.findById(item.itemId);
           if (product) {
+            if (product.stock < item.quantity) {
+              this.logger.warn(
+                `Stock anomaly: product ${product.id} ('${product.name}') insufficient at finalize. Available: ${product.stock}, needed: ${item.quantity}. Transaction proceeds as completed regardless.`,
+              );
+            }
             product.stock -= item.quantity;
             tem.create(StockLog, {
               product,
               qtyChange: -item.quantity,
               type: 'transaction',
               referenceId: transaction.id,
-              note: null,
+              note:
+                product.stock < 0
+                  ? 'ANOMALY: oversold, needs manual restock/refund decision'
+                  : null,
             });
           }
         }
@@ -449,11 +466,10 @@ export class TransactionService {
     return transaction;
   }
 
-  /**
-   * Called from Xendit webhook when payment is confirmed.
-   * Re-finalizes a pending_payment transaction into completed.
-   */
-  async finalizeFromWebhook(xenditInvoiceId: string): Promise<ITransaction> {
+  async finalizeFromWebhook(
+    xenditInvoiceId: string,
+    paidAmount?: number,
+  ): Promise<ITransaction> {
     const transaction = await this.transactionRepository.findOne(
       { xenditInvoiceId },
       { populate: ['items', 'customer', 'barber', 'cashier'] as const },
@@ -468,6 +484,16 @@ export class TransactionService {
     if (transaction.status !== 'pending_payment') {
       // idempotent — already processed, do nothing
       return transaction;
+    }
+
+    const expectedTotal = parseFloat(transaction.total);
+    if (
+      paidAmount !== undefined &&
+      Math.round(paidAmount) !== Math.round(expectedTotal)
+    ) {
+      this.logger.warn(
+        `Payment amount mismatch for transaction ${transaction.id}. Expected: ${expectedTotal}, received from webhook: ${paidAmount}. Proceeding as paid regardless — flagged for review.`,
+      );
     }
 
     const pointsAmountPerUnit = parseInt(
@@ -500,6 +526,12 @@ export class TransactionService {
         if (item.itemType === ItemType.PRODUCT && item.itemId) {
           const product = await this.productRepository.findById(item.itemId);
           if (product) {
+            if (product.stock < item.quantity) {
+              throw new BadRequestException(
+                `Insufficient stock for product at finalization. Available: ${product.stock}, requested: ${item.quantity}`,
+              );
+            }
+
             product.stock -= item.quantity;
             tem.create(StockLog, {
               product,
@@ -616,19 +648,20 @@ export class TransactionService {
       await this.xenditService.expireInvoice(transaction.xenditInvoiceId);
     }
 
-    transaction.status = 'cancelled';
+    await this.em.transactional(async () => {
+      transaction.status = 'cancelled';
 
-    if (transaction.customer) {
-      const redemption = await this.voucherRedemptionRepository.findOne({
-        transaction: transaction.id,
-      });
-      if (redemption) {
-        redemption.isUsed = false;
-        redemption.usedAt = null;
+      if (transaction.customer) {
+        const redemption = await this.voucherRedemptionRepository.findOne({
+          transaction: transaction.id,
+        });
+        if (redemption) {
+          redemption.isUsed = false;
+          redemption.usedAt = null;
+        }
       }
-    }
+    });
 
-    await this.em.flush();
     return transaction;
   }
 }
