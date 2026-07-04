@@ -645,7 +645,14 @@ export class TransactionService {
     }
 
     if (transaction.xenditInvoiceId) {
-      await this.xenditService.expireInvoice(transaction.xenditInvoiceId);
+      try {
+        await this.xenditService.expireInvoice(transaction.xenditInvoiceId);
+      } catch (error) {
+        this.logger.error(
+          `Failed to expire Xendit invoice ${transaction.xenditInvoiceId}:`,
+          error,
+        );
+      }
     }
 
     await this.em.transactional(async () => {
