@@ -172,6 +172,10 @@ const permissionGroups: PermissionGroup[] = [
     children: [
       { name: 'Lihat Absensi', actionCode: 'attendance:read' },
       { name: 'Kelola Absensi', actionCode: 'attendance:manage' },
+      { name: 'Absensi Masuk', actionCode: 'attendances:check-in' },
+      { name: 'Absensi Keluar', actionCode: 'attendances:check-out' },
+      { name: 'Ubah Absensi', actionCode: 'attendances:edit' },
+      { name: 'Hapus Absensi', actionCode: 'attendances:delete' },
     ],
   },
   {
