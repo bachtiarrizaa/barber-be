@@ -21,7 +21,6 @@ import {
 
 function todayDateString(): string {
   const d = new Date();
-  // Format as YYYY-MM-DD for MikroORM date column
   return d.toISOString().split('T')[0];
 }
 
@@ -36,10 +35,6 @@ export class AttendanceService {
     private readonly fileService: FileService,
   ) {}
 
-  /**
-   * BE-043: Check-in with selfie upload
-   * BE-045: Validates only 1 check-in per barber per day
-   */
   async checkIn(
     checkInDto: CheckInDto,
     file: Express.Multer.File,
@@ -53,7 +48,6 @@ export class AttendanceService {
       throw new NotFoundException('User not found');
     }
 
-    // BE-045: Only 1 check-in per barber per day
     const today = todayDateString();
     const existingAttendance =
       await this.attendanceRepository.findTodayByUserId(
@@ -80,17 +74,12 @@ export class AttendanceService {
     return attendance;
   }
 
-  /**
-   * BE-044: Check-out endpoint
-   * BE-046: Validates check-out only if already checked-in
-   */
   async checkOut(checkOutDto: CheckOutDto): Promise<IAttendance> {
     const user = await this.userRepository.findById(checkOutDto.userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    // BE-046: Must have checked in today
     const today = todayDateString();
     const attendance = await this.attendanceRepository.findTodayByUserId(
       checkOutDto.userId,

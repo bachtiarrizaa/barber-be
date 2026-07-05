@@ -10,7 +10,7 @@
       "columns": {
         "check_in": {
           "name": "check_in",
-          "type": "timestamptz(6)",
+          "type": "time(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -23,11 +23,11 @@
           "comment": null,
           "collation": null,
           "enumItems": [],
-          "mappedType": "datetime"
+          "mappedType": "time"
         },
         "check_out": {
           "name": "check_out",
-          "type": "timestamptz(6)",
+          "type": "time(6)",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
@@ -40,7 +40,7 @@
           "comment": null,
           "collation": null,
           "enumItems": [],
-          "mappedType": "datetime"
+          "mappedType": "time"
         },
         "created_at": {
           "name": "created_at",

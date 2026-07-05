@@ -20,11 +20,9 @@ const rolePermissionMap: Record<string, string[] | 'all'> = {
     'attendance:manage',
     'attendances:check-in',
     'attendances:check-out',
+    'users:read',
   ],
-  barber: [
-    'transactions:read',
-    'attendance:read',
-  ],
+  barber: ['transactions:read', 'attendance:read'],
 };
 
 export class RolePermissionSeeder extends Seeder {
