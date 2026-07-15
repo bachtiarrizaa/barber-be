@@ -18,6 +18,7 @@ import { TransactionsModule } from './modules/transactions/transactions.module';
 import { StockModule } from './modules/stock/stocks.module';
 import { XenditModule } from './modules/xendit/xendit.module';
 import { AttendancesModule } from './modules/attendances/attendances.module';
+import { ReportModule } from './modules/reports/reports.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { AttendancesModule } from './modules/attendances/attendances.module';
     StockModule,
     XenditModule,
     AttendancesModule,
+    ReportModule,
   ],
   controllers: [AppController],
   providers: [AppService],
