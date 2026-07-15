@@ -38,6 +38,8 @@ export const Transaction = defineEntity({
     status: p.string(),
     items: () => p.oneToMany(TransactionItem).mappedBy('transaction'),
     createdAt: p.datetime().onCreate(() => new Date()),
+
+    period: p.string().nullable().persist(false),
   },
 });
 
