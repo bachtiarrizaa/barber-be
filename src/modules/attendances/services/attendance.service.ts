@@ -112,6 +112,7 @@ export class AttendanceService {
       filters,
       orderBy: { createdAt: 'DESC' },
       populate: ['user'] as const,
+      searchFields: ['note'],
     });
   }
 

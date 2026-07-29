@@ -39,6 +39,7 @@ export class StockService {
       filters,
       orderBy: { createdAt: 'DESC' },
       populate: ['product'] as const,
+      searchFields: ['note'],
     });
   }
 

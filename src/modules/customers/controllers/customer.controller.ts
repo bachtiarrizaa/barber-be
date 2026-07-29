@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CustomerService } from '../services/customer.service';
 import { ResponseMessage } from '../../../common/decorators/response-message.decorator';
@@ -34,7 +35,7 @@ export class CustomerController {
   @ResponseMessage('Customer retrieved successfully')
   @Permissions('customers:read')
   async findAll(
-    @Param() filterDto: FilterCustomerDto,
+    @Query() filterDto: FilterCustomerDto,
   ): Promise<PaginatedResult<ICustomer>> {
     return this.customerService.findAll(filterDto);
   }
