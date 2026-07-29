@@ -9,7 +9,7 @@ export interface BarberPerformanceRawRow {
   barberName: string;
   totalRevenue: string;
   transactionCount: number;
-  serviceCommissionAmount: string;
+  treatmentCommissionAmount: string;
   productCommissionAmount: string;
   totalCommissionAmount: string;
 }
@@ -19,7 +19,7 @@ export interface BarberPerformanceRow {
   barberName: string;
   totalRevenue: string;
   transactionCount: number;
-  serviceCommissionAmount: string;
+  treatmentCommissionAmount: string;
   productCommissionAmount: string;
   totalCommissionAmount: string;
 }

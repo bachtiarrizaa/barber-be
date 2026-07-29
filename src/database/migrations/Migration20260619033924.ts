@@ -9,7 +9,7 @@ export class Migration20260619033924 extends Migration {
       `alter table "transaction_items" rename column "qty" to "quantity";`,
     );
     this.addSql(
-      `alter table "transaction_items" add constraint "transaction_items_item_type_check" check ("item_type" in ('service', 'product'));`,
+      `alter table "transaction_items" add constraint "transaction_items_item_type_check" check ("item_type" in ('treatment', 'product'));`,
     );
   }
 

@@ -145,14 +145,14 @@ export class TransactionService {
 
     const total = subtotal - discountAmount;
 
-    const serviceCommissionRate = parseFloat(barber.treatmentCommission);
+    const treatmentCommissionRate = parseFloat(barber.treatmentCommission);
     const productCommissionRate = parseFloat(barber.productCommission);
-    const serviceCommissionAmount =
-      totalTreatmentAmount * (serviceCommissionRate / 100);
+    const treatmentCommissionAmount =
+      totalTreatmentAmount * (treatmentCommissionRate / 100);
     const productCommissionAmount =
       totalProductAmount * (productCommissionRate / 100);
     const totalCommissionAmount =
-      serviceCommissionAmount + productCommissionAmount;
+      treatmentCommissionAmount + productCommissionAmount;
 
     const baseParams = {
       cashier,
@@ -162,11 +162,11 @@ export class TransactionService {
       subtotal,
       discountAmount,
       total,
-      totalServiceAmount: totalTreatmentAmount,
+      totalTreatmentAmount: totalTreatmentAmount,
       totalProductAmount,
-      serviceCommissionRate,
+      treatmentCommissionRate,
       productCommissionRate,
-      serviceCommissionAmount,
+      treatmentCommissionAmount,
       productCommissionAmount,
       totalCommissionAmount,
       voucherRedemption,
@@ -207,11 +207,11 @@ export class TransactionService {
       subtotal,
       discountAmount,
       total,
-      totalServiceAmount,
+      totalTreatmentAmount,
       totalProductAmount,
-      serviceCommissionRate,
+      treatmentCommissionRate,
       productCommissionRate,
-      serviceCommissionAmount,
+      treatmentCommissionAmount,
       productCommissionAmount,
       totalCommissionAmount,
       voucherRedemption,
@@ -228,11 +228,11 @@ export class TransactionService {
         subtotal: subtotal.toFixed(2),
         discountAmount: discountAmount.toFixed(2),
         total: total.toFixed(2),
-        totalServiceAmount: totalServiceAmount.toFixed(2),
+        totalTreatmentAmount: totalTreatmentAmount.toFixed(2),
         totalProductAmount: totalProductAmount.toFixed(2),
-        serviceCommissionRate: serviceCommissionRate.toFixed(2),
+        treatmentCommissionRate: treatmentCommissionRate.toFixed(2),
         productCommissionRate: productCommissionRate.toFixed(2),
-        serviceCommissionAmount: serviceCommissionAmount.toFixed(2),
+        treatmentCommissionAmount: treatmentCommissionAmount.toFixed(2),
         productCommissionAmount: productCommissionAmount.toFixed(2),
         totalCommissionAmount: totalCommissionAmount.toFixed(2),
         pointsEarned: 0,
@@ -342,11 +342,11 @@ export class TransactionService {
       subtotal,
       discountAmount,
       total,
-      totalServiceAmount,
+      totalTreatmentAmount,
       totalProductAmount,
-      serviceCommissionRate,
+      treatmentCommissionRate,
       productCommissionRate,
-      serviceCommissionAmount,
+      treatmentCommissionAmount,
       productCommissionAmount,
       totalCommissionAmount,
       amountPaid,
@@ -383,11 +383,11 @@ export class TransactionService {
         subtotal: subtotal.toFixed(2),
         discountAmount: discountAmount.toFixed(2),
         total: total.toFixed(2),
-        totalServiceAmount: totalServiceAmount.toFixed(2),
+        totalTreatmentAmount: totalTreatmentAmount.toFixed(2),
         totalProductAmount: totalProductAmount.toFixed(2),
-        serviceCommissionRate: serviceCommissionRate.toFixed(2),
+        treatmentCommissionRate: treatmentCommissionRate.toFixed(2),
         productCommissionRate: productCommissionRate.toFixed(2),
-        serviceCommissionAmount: serviceCommissionAmount.toFixed(2),
+        treatmentCommissionAmount: treatmentCommissionAmount.toFixed(2),
         productCommissionAmount: productCommissionAmount.toFixed(2),
         totalCommissionAmount: totalCommissionAmount.toFixed(2),
         pointsEarned,

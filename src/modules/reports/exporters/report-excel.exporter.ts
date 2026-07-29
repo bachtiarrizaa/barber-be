@@ -22,7 +22,7 @@ export function generateReportExcel(params: {
   revenueSheet.columns = [
     { header: 'Periode', key: 'period', width: 15 },
     { header: 'Total Revenue', key: 'totalRevenue', width: 20 },
-    { header: 'Total Service', key: 'totalServiceAmount', width: 20 },
+    { header: 'Total Treatment', key: 'totalTreatmentAmount', width: 20 },
     { header: 'Total Produk', key: 'totalProductAmount', width: 20 },
     { header: 'Jumlah Transaksi', key: 'transactionCount', width: 18 },
   ];
@@ -37,8 +37,8 @@ export function generateReportExcel(params: {
     { header: 'Total Revenue', key: 'totalRevenue', width: 20 },
     { header: 'Jumlah Transaksi', key: 'transactionCount', width: 18 },
     {
-      header: 'Komisi Service',
-      key: 'serviceCommissionAmount',
+      header: 'Komisi Treatment',
+      key: 'treatmentCommissionAmount',
       width: 20,
     },
     {
