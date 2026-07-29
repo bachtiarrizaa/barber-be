@@ -15,7 +15,7 @@ export class Migration20260623040336 extends Migration {
     this.addSql(`drop table if exists "stock_logs" cascade;`);
 
     this.addSql(`alter table "transaction_items" drop constraint "transaction_items_item_type_check";`);
-    this.addSql(`alter table "transaction_items" add constraint "transaction_items_item_type_check" check ("item_type" in ('service', 'product'));`);
+    this.addSql(`alter table "transaction_items" add constraint "transaction_items_item_type_check" check ("item_type" in ('treatment', 'product'));`);
   }
 
 }

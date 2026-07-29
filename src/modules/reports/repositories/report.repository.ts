@@ -41,7 +41,7 @@ export class ReportRepository {
           'period',
         ),
         sql`sum(t.total)::text`.as('totalRevenue'),
-        sql`sum(t.total_service_amount)::text`.as('totalServiceAmount'),
+        sql`sum(t.total_treatment_amount)::text`.as('totalTreatmentAmount'),
         sql`sum(t.total_product_amount)::text`.as('totalProductAmount'),
         sql`count(*)::int`.as('transactionCount'),
       ])
@@ -56,7 +56,7 @@ export class ReportRepository {
     return rows.map((row) => ({
       period: row.period,
       totalRevenue: row.totalRevenue,
-      totalServiceAmount: row.totalServiceAmount,
+      totalTreatmentAmount: row.totalTreatmentAmount,
       totalProductAmount: row.totalProductAmount,
       transactionCount: row.transactionCount,
     }));
@@ -73,7 +73,7 @@ export class ReportRepository {
         u.name as "barberName",
         coalesce(sum(t.total), 0)::numeric(12,2)::text as "totalRevenue",
         count(t.id)::int as "transactionCount",
-        coalesce(sum(t.service_commission_amount), 0)::numeric(12,2)::text as "serviceCommissionAmount",
+        coalesce(sum(t.treatment_commission_amount), 0)::numeric(12,2)::text as "treatmentCommissionAmount",
         coalesce(sum(t.product_commission_amount), 0)::numeric(12,2)::text as "productCommissionAmount",
         coalesce(sum(t.total_commission_amount), 0)::numeric(12,2)::text as "totalCommissionAmount"
       from users u
@@ -100,7 +100,7 @@ export class ReportRepository {
       barberName: row.barberName,
       totalRevenue: row.totalRevenue,
       transactionCount: Number(row.transactionCount),
-      serviceCommissionAmount: row.serviceCommissionAmount,
+      treatmentCommissionAmount: row.treatmentCommissionAmount,
       productCommissionAmount: row.productCommissionAmount,
       totalCommissionAmount: row.totalCommissionAmount,
     }));

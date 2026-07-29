@@ -3,7 +3,7 @@ import { RevenueReportGroupBy } from '../dtos/filter-revenue-report.dto';
 export interface RevenueReportRawRow {
   period: string;
   totalRevenue: string;
-  totalServiceAmount: string;
+  totalTreatmentAmount: string;
   totalProductAmount: string;
   transactionCount: number;
 }
@@ -18,7 +18,7 @@ export interface RevenueReportQueryParams {
 export interface RevenueReportRow {
   period: string;
   totalRevenue: string;
-  totalServiceAmount: string;
+  totalTreatmentAmount: string;
   totalProductAmount: string;
   transactionCount: number;
 }

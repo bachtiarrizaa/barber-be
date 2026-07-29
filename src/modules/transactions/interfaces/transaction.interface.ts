@@ -20,11 +20,11 @@ export interface FinalizeTransactionParams {
   subtotal: number;
   discountAmount: number;
   total: number;
-  totalServiceAmount: number;
+  totalTreatmentAmount: number;
   totalProductAmount: number;
-  serviceCommissionRate: number;
+  treatmentCommissionRate: number;
   productCommissionRate: number;
-  serviceCommissionAmount: number;
+  treatmentCommissionAmount: number;
   productCommissionAmount: number;
   totalCommissionAmount: number;
   amountPaid: number;
