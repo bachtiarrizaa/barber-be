@@ -2,7 +2,7 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { User } from '../../users/entities/user.entity';
 import { UserRepository } from '../../users/repositories/user.repository';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { LoginDto } from '../dtos/login.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from '../../../common/interfaces/jwt-payload.interface';
@@ -109,12 +109,16 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_ACCESS_SECRET,
-      expiresIn: '15m',
+      expiresIn:
+        (process.env.JWT_ACCESS_EXPIRATION as JwtSignOptions['expiresIn']) ??
+        '15m',
     });
 
     const refreshToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: '7d',
+      expiresIn:
+        (process.env.JWT_REFRESH_EXPIRATION as JwtSignOptions['expiresIn']) ??
+        '7d',
     });
 
     return { accessToken, refreshToken };
