@@ -5,11 +5,10 @@ import { AuthController } from './controllers/auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthService } from './services/auth.service';
 import { JwtAccessStrategy } from './strategies/jwt.strategy';
-import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
-import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CommonModule } from '../../common/common.module';
+import { RefreshTokenService } from './services/refresh-token.service';
 
 @Module({
   imports: [
@@ -20,10 +19,9 @@ import { CommonModule } from '../../common/common.module';
   controllers: [AuthController],
   providers: [
     AuthService,
+    RefreshTokenService,
     JwtAccessStrategy,
-    JwtRefreshStrategy,
     JwtAuthGuard,
-    JwtRefreshGuard,
     RolesGuard,
   ],
   exports: [AuthService, RolesGuard, JwtAuthGuard],
