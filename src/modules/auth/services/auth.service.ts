@@ -2,7 +2,7 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { User } from '../../users/entities/user.entity';
 import { UserRepository } from '../../users/repositories/user.repository';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { LoginDto } from '../dtos/login.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from '../../../common/interfaces/jwt-payload.interface';
@@ -13,15 +13,28 @@ import {
 } from '../interfaces/auth-tokens.interface';
 import { ITokenUser } from '../interfaces/token-user.interface';
 import { TokenBlacklistService } from '../../../common/services/token-blacklist.service';
+import {
+  InvalidRefreshTokenError,
+  ReuseDetectedError,
+  RefreshTokenService,
+} from './refresh-token.service';
+import { parseDurationSeconds } from '../../../common/utils/duration.utils';
 
 @Injectable()
 export class AuthService {
+  private readonly accessTokenTtlSeconds: number;
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
     private readonly tokenBlacklistService: TokenBlacklistService,
-  ) {}
+    private readonly refreshTokenService: RefreshTokenService,
+  ) {
+    this.accessTokenTtlSeconds = parseDurationSeconds(
+      process.env.JWT_ACCESS_EXPIRATION ?? '15m',
+    );
+  }
 
   async login(loginDto: LoginDto): Promise<LoginResponse> {
     const user = await this.userRepository.findOne(
@@ -38,7 +51,7 @@ export class AuthService {
     );
     if (!passwordValid) throw new UnauthorizedException('Invalid credentials');
 
-    const tokens = this.generateTokens(user);
+    const tokens = await this.generateTokens(user);
 
     const permissions = user.role.permissions.getItems();
     const parentMap = new Map<string, ParentPermission>();
@@ -64,59 +77,93 @@ export class AuthService {
 
     return {
       ...tokens,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: {
+          id: user.role.id,
+          name: user.role.name,
+        },
+      },
       permissions: permissionTree,
     };
   }
 
   async logout(accessToken: string, refreshToken?: string): Promise<void> {
-    const decodedAccess = this.jwtService.decode<JwtPayload>(accessToken);
-    if (decodedAccess?.exp) {
-      const ttl = decodedAccess.exp - Math.floor(Date.now() / 1000);
-      if (ttl > 0) {
-        await this.tokenBlacklistService.blacklist(accessToken, ttl);
+    try {
+      const payload = this.jwtService.verify<JwtPayload>(accessToken, {
+        secret: process.env.JWT_ACCESS_SECRET,
+      });
+      if (payload?.exp) {
+        const ttl = payload.exp - Math.floor(Date.now() / 1000);
+        if (ttl > 0) {
+          await this.tokenBlacklistService.blacklist(accessToken, ttl);
+        }
       }
+    } catch {
+      // Ignore invalid or expired token signature during logout
     }
 
     if (refreshToken) {
-      const decodedRefresh = this.jwtService.decode<JwtPayload>(refreshToken);
-      if (decodedRefresh?.exp) {
-        const ttl = decodedRefresh.exp - Math.floor(Date.now() / 1000);
-        if (ttl > 0) {
-          await this.tokenBlacklistService.blacklist(refreshToken, ttl);
-        }
-      }
+      await this.refreshTokenService.revoke(refreshToken);
     }
   }
 
-  async refreshToken(userId: string): Promise<AuthTokens> {
+  async refreshToken(rawRefreshToken: string): Promise<AuthTokens> {
+    let rotated: { userId: string; newToken: string };
+    try {
+      rotated = await this.refreshTokenService.rotate(rawRefreshToken);
+    } catch (err) {
+      if (err instanceof ReuseDetectedError) {
+        throw new UnauthorizedException(
+          'Token reuse detected, all sessions revoked',
+        );
+      }
+      if (err instanceof InvalidRefreshTokenError) {
+        throw new UnauthorizedException('Refresh token invalid or expired');
+      }
+      throw err;
+    }
+
     const user = await this.userRepository.findOne(
-      { id: userId },
+      { id: rotated.userId },
       { populate: ['role'] },
     );
-
     if (!user || !user.isActive)
       throw new UnauthorizedException('Access denied');
 
-    return this.generateTokens(user);
+    const accessToken = this.signAccessToken(user);
+
+    return {
+      accessToken,
+      refreshToken: rotated.newToken,
+      expiresIn: this.accessTokenTtlSeconds,
+    };
   }
 
-  private generateTokens(user: ITokenUser): AuthTokens {
+  private signAccessToken(user: ITokenUser): string {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
       role: user.role.name,
     };
-
-    const accessToken = this.jwtService.sign(payload, {
+    return this.jwtService.sign(payload, {
       secret: process.env.JWT_ACCESS_SECRET,
-      expiresIn: '15m',
+      expiresIn:
+        (process.env.JWT_ACCESS_EXPIRATION as JwtSignOptions['expiresIn']) ??
+        '15m',
     });
+  }
 
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: '7d',
-    });
+  private async generateTokens(user: ITokenUser): Promise<AuthTokens> {
+    const accessToken = this.signAccessToken(user);
+    const refreshToken = await this.refreshTokenService.create(user.id);
 
-    return { accessToken, refreshToken };
+    return {
+      accessToken,
+      refreshToken,
+      expiresIn: this.accessTokenTtlSeconds,
+    };
   }
 }

@@ -1,6 +1,7 @@
 export interface AuthTokens {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
+  expiresIn: number;
 }
 
 export interface ChildPermission {
@@ -15,8 +16,15 @@ export interface ParentPermission {
   children: ChildPermission[];
 }
 
-export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
+export interface LoginResponse extends AuthTokens {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: {
+      id: string;
+      name: string;
+    };
+  };
   permissions: ParentPermission[];
 }
