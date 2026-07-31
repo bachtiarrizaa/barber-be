@@ -17,5 +17,14 @@ export interface ParentPermission {
 }
 
 export interface LoginResponse extends AuthTokens {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: {
+      id: string;
+      name: string;
+    };
+  };
   permissions: ParentPermission[];
 }

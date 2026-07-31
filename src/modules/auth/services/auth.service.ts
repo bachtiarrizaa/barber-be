@@ -77,6 +77,15 @@ export class AuthService {
 
     return {
       ...tokens,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: {
+          id: user.role.id,
+          name: user.role.name,
+        },
+      },
       permissions: permissionTree,
     };
   }

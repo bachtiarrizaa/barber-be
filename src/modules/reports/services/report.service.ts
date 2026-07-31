@@ -8,7 +8,6 @@ import {
   RevenueReportGroupBy,
 } from '../dtos/filter-revenue-report.dto';
 import { RevenueReportRow } from '../interfaces/revenue-report.interfaces';
-import { resolveDateRange } from '../../../common/utils/date-range.utils';
 import { FilterBarberPerformanceDto } from '../dtos/filter-barber-performance.dto';
 import { BarberPerformanceRow } from '../interfaces/barber-performance-report.interfaces';
 import { FilterTopItemsDto } from '../dtos/filter-top-items.dto';
@@ -24,6 +23,7 @@ import {
 } from '../../transactions/entities/transaction.entity';
 import { TransactionRepository } from '../../transactions/repositories/transaction.repository';
 import { ExportReportDto } from '../dtos/export-report.dto';
+import { resolveDateRange } from '../../../common/utils/date-range.utils';
 
 @Injectable()
 export class ReportService {
